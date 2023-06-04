@@ -162,12 +162,16 @@ def update():
             if index == 1:
                 position_x = int(open_file('files/portal2_position_x.txt'))
                 position_z = int(open_file('files/portal2_position_z.txt'))
+                position_y = int(open_file('files/portal2_position_y.txt')) + 1
+                player.y = position_y
                 player.x = position_x
                 player.z = position_z
                 migration = 1
             if index == 2:
                 position_x = int(open_file('files/portal1_position_x.txt'))
                 position_z = int(open_file('files/portal1_position_z.txt'))
+                position_y = int(open_file('files/portal1_position_y.txt')) + 1
+                player.y = position_y
                 player.x = position_x
                 player.z = position_z
                 migration = 1
@@ -287,6 +291,7 @@ class Voxel(Button):
                         write_file('files/portal1.txt', str(list((int(self.position.x), int(self.position.z)))))
                         write_file('files/portal1_position_x.txt', f'{int(self.position.x)}')
                         write_file('files/portal1_position_z.txt', f'{int(self.position.z)}')
+                        write_file('files/portal1_position_y.txt', f'{int(self.position.y)}')
                     elif portal_state == 1:
                         voxel = Voxel(position=self.position + mouse.normal, texture = portal_texture)
                         portal_state = 2
@@ -295,6 +300,7 @@ class Voxel(Button):
                         write_file('files/portal2.txt', str(list((int(self.position.x), int(self.position.z)))))
                         write_file('files/portal2_position_x.txt', f'{int(self.position.x)}')
                         write_file('files/portal2_position_z.txt', f'{int(self.position.z)}')
+                        write_file('files/portal2_position_y.txt', f'{int(self.position.y)}')
                     else:
                         print('no place')
 
