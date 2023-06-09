@@ -1,6 +1,8 @@
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 
+from file_opener import *
+from sheep_file import *
 
 app = Ursina()
 window.exit_button.disable()
@@ -17,6 +19,8 @@ leaves_texture = load_texture('assets/leaves_block.png')
 diamond_texture = load_texture('assets/diamond_block.png')
 tnt_texture = load_texture('assets/tnt_block.png')
 portal_texture = load_texture('assets/portal_block.png')
+tree_texture = load_texture('assets/tree_block.png')
+slime_texture = load_texture('assets/slime_block.png')
 
 block_pick = 1
 enable_state = True
@@ -24,7 +28,7 @@ fly_state = True
 fly_hight = 25
 
 voxeles = 15
-max_blocks = 12
+max_blocks = 13
 
 super_speed = 10
 super_jump = 10
@@ -40,17 +44,10 @@ portal_ready = False
 portal_number = 0
 migration = 0
 
+slime_number = 0
+
 index = 0
 
-def open_file(file_path: str):
-    with open(str(file_path), 'r+') as file:
-        file_text = file.read()
-    return file_text
-
-def write_file(file_path: str, text: str):
-    with open(str(file_path), 'w+') as file:
-        file.truncate(0)
-        file.write(text) 
 
 def input(key):
     global fly_state
@@ -105,9 +102,11 @@ def update():
     if block_pick == 9:
         show.texture =  'assets/diamond.jpg'
     if block_pick == 10:
-        show.texture =  'assets/the_tnt.jpg'
+        show.texture =  'assets/slime.png'
     if block_pick == 11:
         show.texture = 'assets/portal.jpg'
+    if block_pick == 12:
+        show.texture = 'assets/the_tnt.jpg'
 
     if player.position.y < 0:
         player.position = (3, 23, 3)
@@ -136,7 +135,6 @@ def update():
         player.position = (player.x, fly_hight, player.z)
     else:
         player.gravity = 1
-
 
     if portal_ready == True:
         portals_position = [open_file('files/portal1.txt'), open_file('files/portal2.txt')]
@@ -191,6 +189,7 @@ class Voxel(Button):
         global texture_image_path
         global portal_state
         global portal_ready
+        global slime_number
 
         if self.hovered:
             if key == 'left mouse down':
@@ -208,8 +207,8 @@ class Voxel(Button):
                     voxel = Voxel(position=self.position + mouse.normal, texture=water_texture)
                     water_collide = voxel.intersects()
                     if str(water_collide.entity.texture) == 'fire_block.png':
-                        destroy(voxel, delay=0.7)
-                        destroy(water_collide.entity, delay=0.7)
+                        destroy(voxel, delay=0.5)
+                        destroy(water_collide.entity, delay=0.5)
                 if block_pick == 7:
                     voxel = Voxel(position=self.position + mouse.normal, texture=fire_texture)
                     voxel_interes = voxel.intersects()
@@ -275,14 +274,18 @@ class Voxel(Button):
                         destroy(voxel8, delay=0.5)
                         destroy(voxel9, delay=0.5)
                     if collides == 'water_block.png':
-                        destroy(voxel, delay=0.7)
-                        destroy(voxel_interes.entity, delay=0.7)
+                        destroy(voxel, delay=0.5)
+                        destroy(voxel_interes.entity, delay=0.5)
+                    if collides == 'wood_block.png':
+                        destroy(voxel_interes.entity, delay=0.3)
+                        voxel.y -= 1
                 if block_pick == 8:
                     voxel = Voxel(position=self.position + mouse.normal, texture=leaves_texture)
                 if block_pick == 9:
                     voxel = Voxel(position=self.position + mouse.normal, texture=diamond_texture)
                 if block_pick == 10:
-                    voxel = Voxel(position=self.position + mouse.normal, texture=tnt_texture)
+                    slime_voxel = Voxel(position=self.position + mouse.normal, texture=slime_texture)
+                    slime_number += 1
                 if block_pick == 11:
                     if portal_state == 0:
                         voxel = Voxel(position=self.position + mouse.normal, texture=portal_texture)
@@ -303,6 +306,8 @@ class Voxel(Button):
                         write_file('files/portal2_position_y.txt', f'{int(self.position.y)}')
                     else:
                         print('no place')
+                if block_pick == 12:
+                    voxel = Voxel(position=self.position + mouse.normal, texture=tnt_texture)
 
             if key == 'right mouse down':
                 if self.texture == portal_texture:
@@ -373,77 +378,39 @@ class Show(Sprite):
             scale = 0.07
         )
 
-class Sheep(Entity):
-    def __init__(self, position = (0, 0, 0)):
-        super().__init__(
-            parent = scene,
-            position = position,
-            model = 'assets/block',
-            origin_y = 0.5,
-            texture = load_texture('assets/sheep_block2.png'),
-            color = color.color(0, 0, random.uniform(0.9, 1)),
-            scale = 0.5,
-            rotation = Vec3(0, 180, 0),
-        )
-    
-    def update(self):
-        global sheep_speed
+class Trees():
+    def __init__(self, number = 1):
+        number_of_trees = number
 
-        origin = self.world_position + (self.up)
-
-        hit_info = raycast(origin=origin, direction=self.rotation_directions,
-                            ignore=(self,), distance=.5, debug=False)
-        
+        for i in range(number_of_trees):
+            pos_x = random.randint(1, voxeles - 1)
+            pos_z = random.randint(1, voxeles - 1)
+            trunk_length = random.randint(3, 6)
 
 
-        where = random.randint(1, 4)
-        if where == 1:
-            if self.x < voxeles:
-                if hit_info.hit == False:
-                    self.rotation = Vec3(0, 180, 0)
-                    self.x += sheep_speed
-                    self.state = 'x+'
-
-        if where == 2:
-            if self.x > 1:
-                if hit_info.hit == False:
-                    self.rotation = Vec3(0, 360, 0)
-                    self.x -= sheep_speed
-                    self.state = 'x-'
-            
-        if where == 3:
-            if self.z < voxeles:
-                if hit_info.hit == False:
-                    self.rotation = Vec3(0, 90, 0)
-                    self.z += sheep_speed
-                    self.state = 'z+'
-
-        if where == 4:
-            if self.z > 1:
-                if hit_info.hit == False:
-                    self.rotation = Vec3(0, 270, 0)
-                    self.z -= sheep_speed
-                    self.state = 'z-'
-
-        if hit_info.hit:
-            if str(hit_info.entity.texture) == 'leaves_block.png':
-                destroy(hit_info.entity)
-            else:
-                pos = hit_info.entity.position
-                pos_x = pos[0]
-                pos_y = 13
-                pos_z = pos[2]
-                print(pos_x)
-                if self.state == 'x+':
-                    self.position = Vec3(pos_x - 1, pos_y, pos_z)
-                if self.state == 'x-':
-                    self.position = Vec3(pos_x + 1, pos_y, pos_z)
-                if self.state == 'z+':
-                    self.position = Vec3(pos_x, pos_y, pos_z - 1)
-                if self.state == 'z-':
-                    self.position = Vec3(pos_x, pos_y, pos_z + 1)
-        else:
-            sheep_speed = 1
+            for trunk_part_int in range(0, trunk_length):
+                trunk_part = Voxel(position=(pos_x, trunk_part_int + 13, pos_z), texture=tree_texture)
+            for leave_int in range(11):
+                if leave_int == 1:
+                    leave = Voxel(position=(pos_x, trunk_length + 13, pos_z), texture=leaves_texture)
+                if leave_int == 2:
+                    leave = Voxel(position=(pos_x+1, trunk_length + 13, pos_z), texture=leaves_texture)
+                if leave_int == 3:
+                    leave = Voxel(position=(pos_x, trunk_length + 13, pos_z+1), texture=leaves_texture)
+                if leave_int == 4:
+                    leave = Voxel(position=(pos_x+1, trunk_length + 13, pos_z+1), texture=leaves_texture)
+                if leave_int == 5:
+                    leave = Voxel(position=(pos_x-1, trunk_length + 13, pos_z), texture=leaves_texture)
+                if leave_int == 6:
+                    leave = Voxel(position=(pos_x, trunk_length + 13, pos_z-1), texture=leaves_texture)
+                if leave_int == 7:
+                    leave = Voxel(position=(pos_x-1, trunk_length + 13, pos_z-1), texture=leaves_texture)
+                if leave_int == 8:
+                    leave = Voxel(position=(pos_x + 1, trunk_length + 13, pos_z - 1), texture=leaves_texture)
+                if leave_int == 9:
+                    leave = Voxel(position=(pos_x - 1, trunk_length + 13, pos_z + 1), texture=leaves_texture)
+                if leave_int == 10:
+                    leave = Voxel(position=(pos_x, trunk_length + 13 + 1, pos_z), texture=leaves_texture)
 
 for z in range(voxeles + 1):
     for x in range(voxeles + 1):
@@ -462,6 +429,9 @@ player.cursor.color = color.black
 sky = Sky()
 hand = Hand()
 show = Show()
+trees_number = random.randint(1, 4)
+trees = Trees(trees_number)
+
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
         r = random.randint(0, voxeles)
