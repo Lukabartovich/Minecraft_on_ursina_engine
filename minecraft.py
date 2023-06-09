@@ -54,8 +54,6 @@ def v_minus(voxel):
     voxel = Voxel(position=pos, texture=fire_texture)
     destroy(voxel, delay=0.3)
 
-
-
 def input(key):
     global fly_state
     global max_blocks
