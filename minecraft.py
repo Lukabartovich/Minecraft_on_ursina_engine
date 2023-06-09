@@ -429,7 +429,7 @@ player.cursor.color = color.black
 sky = Sky()
 hand = Hand()
 show = Show()
-trees_number = random.randint(1, 4)
+trees_number = random.randint(2, 4)
 trees = Trees(trees_number)
 
 if how_many_sheeps > 0:
