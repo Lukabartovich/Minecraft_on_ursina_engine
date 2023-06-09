@@ -48,6 +48,13 @@ slime_number = 0
 
 index = 0
 
+def v_minus(voxel):
+    pos = (voxel.x, voxel.y - 1, voxel.z)
+    destroy(voxel, delay=0.3)
+    voxel = Voxel(position=pos, texture=fire_texture)
+    destroy(voxel, delay=0.3)
+
+
 
 def input(key):
     global fly_state
@@ -276,9 +283,10 @@ class Voxel(Button):
                     if collides == 'water_block.png':
                         destroy(voxel, delay=0.5)
                         destroy(voxel_interes.entity, delay=0.5)
-                    if collides == 'wood_block.png':
+                    if collides == 'wood_block.png' or collides == 'tree_block.png':
                         destroy(voxel_interes.entity, delay=0.3)
-                        voxel.y -= 1
+                        v_minus(voxel=voxel)
+
                 if block_pick == 8:
                     voxel = Voxel(position=self.position + mouse.normal, texture=leaves_texture)
                 if block_pick == 9:
