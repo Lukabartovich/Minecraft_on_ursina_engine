@@ -21,6 +21,9 @@ tnt_texture = load_texture('assets/tnt_block.png')
 portal_texture = load_texture('assets/portal_block.png')
 tree_texture = load_texture('assets/tree_block.png')
 slime_texture = load_texture('assets/slime_block.png')
+glass_texture = load_texture('assets/glass_block.png')
+sand_texture = load_texture('assets/sand_block.png')
+
 
 block_pick = 1
 enable_state = True
@@ -28,7 +31,7 @@ fly_state = True
 fly_hight = 25
 
 voxeles = 15
-max_blocks = 13
+max_blocks = 15
 
 super_speed = 10
 super_jump = 10
@@ -48,8 +51,12 @@ slime_number = 0
 
 index = 0
 
+day_length = 60
+
 start_time = time.time()
 sky_state = 1
+
+glass_col = 0
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -115,6 +122,10 @@ def update():
         show.texture = 'assets/portal.jpg'
     if block_pick == 12:
         show.texture = 'assets/the_tnt.jpg'
+    if block_pick == 13:
+        show.texture = 'assets/glass.png'
+    if block_pick == 14:
+        show.texture = 'assets/sand.jpg'
 
     if player.position.y < 0:
         player.position = (3, 23, 3)
@@ -198,6 +209,7 @@ class Voxel(Button):
         global portal_state
         global portal_ready
         global slime_number
+        global glass_col
 
         if self.hovered:
             if key == 'left mouse down':
@@ -287,7 +299,12 @@ class Voxel(Button):
                     if collides == 'wood_block.png' or collides == 'tree_block.png':
                         destroy(voxel_interes.entity, delay=0.3)
                         v_minus(voxel=voxel)
-
+                    if collides == 'sand_block.png':
+                        print('make glass')
+                        pos = (voxel.x, voxel.y - 1, voxel.z)
+                        destroy(voxel, delay=0.3)
+                        destroy(voxel_interes.entity, delay=0.3)
+                        voxel = Voxel(position=pos, texture=glass_texture)
                 if block_pick == 8:
                     voxel = Voxel(position=self.position + mouse.normal, texture=leaves_texture)
                 if block_pick == 9:
@@ -317,7 +334,12 @@ class Voxel(Button):
                         print('no place')
                 if block_pick == 12:
                     voxel = Voxel(position=self.position + mouse.normal, texture=tnt_texture)
-
+                if block_pick == 13:
+                    if glass_col > 0:
+                        voxel = Voxel(position=self.position + mouse.normal, texture=glass_texture)
+                        glass_col -= 1
+                if block_pick == 14:
+                    voxel = Voxel(position=self.position + mouse.normal, texture=sand_texture)
             if key == 'right mouse down':
                 if self.texture == portal_texture:
                     if portal_state == 2:
@@ -331,6 +353,10 @@ class Voxel(Button):
                         index = 0
                     else:
                         print('nope')
+                elif self.texture == glass_texture:
+                    print('glass')
+                    destroy(self)
+                    glass_col += 1
                 else:
                     destroy(self)
             
@@ -347,13 +373,14 @@ class Sky(Entity):
     def update(self):
         global start_time
         global sky_state
+        global day_length
 
         time_ = time.time() - start_time
         # print(time_)
-        if int(time_) > 20:
+        if int(time_) > day_length - 10:
             self.texture = load_texture('assets/sunset_skybox.jpg')
 
-        if int(time_) > 30:
+        if int(time_) > day_length:
             if sky_state == 1:
                 sky_state = 2
                 start_time = time.time()
@@ -394,11 +421,10 @@ class YouDied(WindowPanel):
     
     def input(self, key):
         global enable_state
-        if self.hovered:
-            if key == 'left mouse down':
-                self.disable()
-                enable_state = True
-                player.position = (3, 23, 3)
+        if key == 'left mouse down':
+            self.disable()
+            enable_state = True
+            player.position = (3, 23, 3)
 
 class Show(Sprite):
     def __init__(self):
