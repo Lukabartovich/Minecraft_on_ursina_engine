@@ -354,7 +354,6 @@ class Voxel(Button):
                     else:
                         print('nope')
                 elif self.texture == glass_texture:
-                    print('glass')
                     destroy(self)
                     glass_col += 1
                 else:
