@@ -358,10 +358,12 @@ class Sky(Entity):
                 sky_state = 2
                 start_time = time.time()
                 self.texture = load_texture('assets/night_skybox.jpg')
+                player.cursor.color = color.white
             elif sky_state == 2:
                 sky_state = 1
                 start_time = time.time()
                 self.texture = load_texture('assets/skybox.png')
+                player.cursor.color = color.black
 
 class Hand(Entity):
     def __init__(self):
