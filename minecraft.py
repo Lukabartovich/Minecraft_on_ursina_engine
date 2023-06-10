@@ -52,11 +52,15 @@ slime_number = 0
 index = 0
 
 day_length = 60
+sunset_length = 15
 
 start_time = time.time()
 sky_state = 1
 
 glass_col = 0
+glass_forever = True
+
+falling_limit = -30
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -119,15 +123,16 @@ def update():
     if block_pick == 10:
         show.texture =  'assets/slime.png'
     if block_pick == 11:
-        show.texture = 'assets/portal.jpg'
-    if block_pick == 12:
-        show.texture = 'assets/the_tnt.jpg'
-    if block_pick == 13:
+        show.texture = 'assets/clear.png'
         show.texture = 'assets/glass.png'
-    if block_pick == 14:
+    if block_pick == 12:
         show.texture = 'assets/sand.jpg'
+    if block_pick == 13:
+        show.texture = 'assets/portal.jpg'
+    if block_pick == 14:
+        show.texture = 'assets/the_tnt.jpg'
 
-    if player.position.y < 0:
+    if player.position.y < falling_limit:
         player.position = (3, 23, 3)
         YouDied()
         enable_state = False
@@ -210,6 +215,7 @@ class Voxel(Button):
         global portal_ready
         global slime_number
         global glass_col
+        global glass_forever
 
         if self.hovered:
             if key == 'left mouse down':
@@ -313,6 +319,15 @@ class Voxel(Button):
                     slime_voxel = Voxel(position=self.position + mouse.normal, texture=slime_texture)
                     slime_number += 1
                 if block_pick == 11:
+                    if glass_forever:
+                        voxel = Voxel(position=self.position + mouse.normal, texture=glass_texture)
+                    else:
+                        if glass_col > 0:
+                            voxel = Voxel(position=self.position + mouse.normal, texture=glass_texture)
+                            glass_col -= 1
+                if block_pick == 12:
+                    voxel = Voxel(position=self.position + mouse.normal, texture=sand_texture)
+                if block_pick == 13:
                     if portal_state == 0:
                         voxel = Voxel(position=self.position + mouse.normal, texture=portal_texture)
                         portal_state = 1
@@ -332,14 +347,10 @@ class Voxel(Button):
                         write_file('files/portal2_position_y.txt', f'{int(self.position.y)}')
                     else:
                         print('no place')
-                if block_pick == 12:
-                    voxel = Voxel(position=self.position + mouse.normal, texture=tnt_texture)
-                if block_pick == 13:
-                    if glass_col > 0:
-                        voxel = Voxel(position=self.position + mouse.normal, texture=glass_texture)
-                        glass_col -= 1
                 if block_pick == 14:
-                    voxel = Voxel(position=self.position + mouse.normal, texture=sand_texture)
+                    voxel = Voxel(position=self.position + mouse.normal, texture=tnt_texture)
+
+
             if key == 'right mouse down':
                 if self.texture == portal_texture:
                     if portal_state == 2:
@@ -373,10 +384,11 @@ class Sky(Entity):
         global start_time
         global sky_state
         global day_length
+        global sunset_length
 
         time_ = time.time() - start_time
         # print(time_)
-        if int(time_) > day_length - 10:
+        if int(time_) > day_length - sunset_length:
             self.texture = load_texture('assets/sunset_skybox.jpg')
 
         if int(time_) > day_length:
