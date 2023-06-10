@@ -48,6 +48,9 @@ slime_number = 0
 
 index = 0
 
+start_time = time.time()
+sky_state = 1
+
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
     destroy(voxel, delay=0.3)
@@ -340,6 +343,25 @@ class Sky(Entity):
             scale = 200,
             double_sided = True
         )
+    
+    def update(self):
+        global start_time
+        global sky_state
+
+        time_ = time.time() - start_time
+        # print(time_)
+        if int(time_) > 20:
+            self.texture = load_texture('assets/sunset_skybox.jpg')
+
+        if int(time_) > 30:
+            if sky_state == 1:
+                sky_state = 2
+                start_time = time.time()
+                self.texture = load_texture('assets/night_skybox.jpg')
+            elif sky_state == 2:
+                sky_state = 1
+                start_time = time.time()
+                self.texture = load_texture('assets/skybox.png')
 
 class Hand(Entity):
     def __init__(self):
@@ -370,10 +392,11 @@ class YouDied(WindowPanel):
     
     def input(self, key):
         global enable_state
-        if key == 'left mouse down':
-            self.disable()
-            enable_state = True
-            player.position = (3, 23, 3)
+        if self.hovered:
+            if key == 'left mouse down':
+                self.disable()
+                enable_state = True
+                player.position = (3, 23, 3)
 
 class Show(Sprite):
     def __init__(self):
