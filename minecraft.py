@@ -72,6 +72,7 @@ def input(key):
     global fly_state
     global max_blocks
     global block_pick
+    global fly_hight
 
     if key == 'f':
         if fly_state == False:
@@ -79,18 +80,27 @@ def input(key):
         else:
             fly_state = False
 
+    if fly_state == True:
+        if key == 'up arrow' or key == 'up arrow hold':
+            fly_hight += 1
+            # print('up')
+        if key == 'down arrow' or key == 'down arrow hold':
+            fly_hight -= 1
+            # print('down')
+
+
     if key == 'b':
         show = Show()
         block_pick = 1
         show.texture = 'assets/grass.png'
 
-    if key == 'right arrow up' or key == 'right arrow hold' or key == 'scroll down':
+    if key == 'right arrow' or key == 'right arrow hold' or key == 'scroll up':
         if block_pick < max_blocks - 1:
             block_pick += 1
         else:
             block_pick = max_blocks - 1
 
-    if key == 'left arrow up' or key == 'left arrow hold' or key == 'scroll up': 
+    if key == 'left arrow' or key == 'left arrow hold' or key == 'scroll down': 
         if block_pick > 1:
             block_pick -= 1
 
