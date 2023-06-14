@@ -63,7 +63,7 @@ sky_state = 1
 glass_col = 0
 glass_forever = True
 
-falling_limit = -30
+falling_limit = -1
 
 ground_not_normal = True
 stone_depth = random.randint(3, 6)
@@ -454,18 +454,31 @@ class YouDied(WindowPanel):
     def __init__(self):
         super().__init__(
             title='you died. play again',
+            color=color.red,
             content=(
-            Button(text = 'play', color = color.green, highlight_color = color.blue),
             ),
             popup = True,
         )
     
     def input(self, key):
         global enable_state
-        if key == 'left mouse down':
-            self.disable()
-            enable_state = True
-            player.position = (3, 23, 3)
+        if self.hovered:
+            if key == 'left mouse down':
+                self.disable()
+                enable_state = True
+                player.position = (3, 23, 3)
+            else:
+                self.enable()
+                enable_state = False
+        else:
+            self.enable()
+            enable_state = False
+    
+    def update(self):
+        if self.hovered:
+            self.color = color.green
+        else:
+            self.color = color.red
 
 class Show(Sprite):
     def __init__(self):
