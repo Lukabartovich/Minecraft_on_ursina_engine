@@ -23,6 +23,9 @@ tree_texture = load_texture('assets/tree_block.png')
 slime_texture = load_texture('assets/slime_block.png')
 glass_texture = load_texture('assets/glass_block.png')
 sand_texture = load_texture('assets/sand_block.png')
+diamond_texture_2 = load_texture('assets/diamond_block2.png')
+gold_texture_1 = load_texture('assets/gold_block1.png')
+gold_texture_2 = load_texture('assets/gold_block2.png')
 
 
 block_pick = 1
@@ -31,7 +34,7 @@ fly_state = True
 fly_hight = 25
 
 voxeles = 15
-max_blocks = 15
+max_blocks = 18
 
 super_speed = 10
 super_jump = 10
@@ -51,8 +54,8 @@ slime_number = 0
 
 index = 0
 
-day_length = 60
-sunset_length = 15
+day_length = 1200
+sunset_length = 120
 
 start_time = time.time()
 sky_state = 1
@@ -61,6 +64,11 @@ glass_col = 0
 glass_forever = True
 
 falling_limit = -30
+
+ground_not_normal = True
+stone_depth = random.randint(3, 6)
+stone_choice = random.randint(1, 2)
+r_land = random.randint(1, 2)
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -94,13 +102,13 @@ def input(key):
         block_pick = 1
         show.texture = 'assets/grass.png'
 
-    if key == 'right arrow' or key == 'right arrow hold' or key == 'scroll up':
+    if key == 'right arrow' or key == 'right arrow hold' or key == 'scroll down':
         if block_pick < max_blocks - 1:
             block_pick += 1
         else:
             block_pick = max_blocks - 1
 
-    if key == 'left arrow' or key == 'left arrow hold' or key == 'scroll down': 
+    if key == 'left arrow' or key == 'left arrow hold' or key == 'scroll up': 
         if block_pick > 1:
             block_pick -= 1
 
@@ -138,8 +146,14 @@ def update():
     if block_pick == 12:
         show.texture = 'assets/sand.jpg'
     if block_pick == 13:
-        show.texture = 'assets/portal.jpg'
+        show.texture = 'assets/diamond2.jpg'
     if block_pick == 14:
+        show.texture = 'assets/gold1.jpg'
+    if block_pick == 15:
+        show.texture = 'assets/gold2.jpg'
+    if block_pick == 16:
+        show.texture = 'assets/portal.jpg'
+    if block_pick == 17:
         show.texture = 'assets/the_tnt.jpg'
 
     if player.position.y < falling_limit:
@@ -170,7 +184,7 @@ def update():
     else:
         player.gravity = 1
 
-    if portal_ready == True:
+    if portal_ready == True and fly_state == True:
         portals_position = [open_file('files/portal1.txt'), open_file('files/portal2.txt')]
         if str(list((int(player.position.x), int(player.position.z)))) in portals_position:
             index = portals_position.index(str(list((int(player.position.x), int(player.position.z))))) + 1
@@ -338,6 +352,12 @@ class Voxel(Button):
                 if block_pick == 12:
                     voxel = Voxel(position=self.position + mouse.normal, texture=sand_texture)
                 if block_pick == 13:
+                    voxel = Voxel(position=self.position + mouse.normal, texture=diamond_texture_2)
+                if block_pick == 14:
+                    voxel = Voxel(position=self.position + mouse.normal, texture=gold_texture_1)
+                if block_pick == 15:
+                    voxel = Voxel(position=self.position + mouse.normal, texture=gold_texture_2)
+                if block_pick == 16:
                     if portal_state == 0:
                         voxel = Voxel(position=self.position + mouse.normal, texture=portal_texture)
                         portal_state = 1
@@ -357,7 +377,7 @@ class Voxel(Button):
                         write_file('files/portal2_position_y.txt', f'{int(self.position.y)}')
                     else:
                         print('no place')
-                if block_pick == 14:
+                if block_pick == 17:
                     voxel = Voxel(position=self.position + mouse.normal, texture=tnt_texture)
 
 
@@ -490,15 +510,37 @@ class Trees():
                 if leave_int == 10:
                     leave = Voxel(position=(pos_x, trunk_length + 13 + 1, pos_z), texture=leaves_texture)
 
-for z in range(voxeles + 1):
-    for x in range(voxeles + 1):
-        for y in range(13):
-            if y < 12:
-                voxel = Voxel(position = (x, y, z), texture=dirt_texture)
-            else:
-                voxel = Voxel(position = (x, y, z))
-
-
+if ground_not_normal == True:
+    for z in range(voxeles + 1):
+        for x in range(voxeles + 1):
+            for y in range(13):
+                if y < stone_depth + 1:
+                    voxel = Voxel(position = (x, y, z), texture=dirt_texture)
+                elif y > stone_depth and y < 8:
+                    if x > 1 and z > 1 or x < voxeles and z < voxeles:
+                        if stone_choice == 1:
+                            voxel = Voxel(position = (x, y, z), texture=diamond_texture)
+                        else:
+                            voxel = Voxel(position = (x, y, z), texture=gold_texture_1)
+                    else:
+                        voxel = Voxel(position = (x, y, z), texture=dirt_texture)
+                elif y > 7 and y < 10:
+                    voxel = Voxel(position = (x, y, z), texture=stone_texture)
+                elif y > 9 and y < 12:
+                    voxel = Voxel(position = (x, y, z), texture=dirt_texture)
+                else:
+                    if r_land == 1:
+                        voxel = Voxel(position = (x, y, z))
+                    else:
+                        voxel = Voxel(position = (x, y, z), texture=sand_texture)
+else:
+    for z in range(voxeles + 1):
+        for x in range(voxeles + 1):
+            for y in range(13):
+                if y < 12:
+                    voxel = Voxel(position = (x, y, z), texture=dirt_texture)
+                else:
+                    voxel = Voxel(position = (x, y, z))
 
 player = FirstPersonController()
 player.position = (6, 23, 6)
@@ -509,6 +551,7 @@ hand = Hand()
 show = Show()
 trees_number = random.randint(2, 7)
 trees = Trees(trees_number)
+
 
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
