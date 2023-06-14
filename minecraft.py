@@ -54,8 +54,8 @@ slime_number = 0
 
 index = 0
 
-day_length = 1200
-sunset_length = 120
+day_length = 60
+sunset_length = 10
 
 start_time = time.time()
 sky_state = 1
