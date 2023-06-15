@@ -439,7 +439,7 @@ class Sky(Entity):
                 player.cursor.color = color.black
 
 class Sheep(Entity):
-    def __init__(self, position = (0, 0, 0), block_pick = 1):
+    def __init__(self, position = (0, 0, 0)):
         super().__init__(
             parent = scene,
             position = position,
@@ -515,13 +515,6 @@ class Sheep(Entity):
                     self.position = Vec3(pos_x, pos_y, pos_z + 1)
         else:
             sheep_speed = 1
-
-    def input(self, key):
-        if key == 'left mouse down':
-            print(mouse.hovered_entity)
-            if self.hovered:
-                print('lol')
-                # destroy(self)
 
 class Hand(Entity):
     def __init__(self):
@@ -655,6 +648,6 @@ trees = Trees(trees_number)
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
         r = random.randint(0, voxeles)
-        sheep = Sheep(position=(r, 13, r), block_pick = block_pick)
+        sheep = Sheep(position=(r, 13, r))
 
 app.run()
