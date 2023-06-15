@@ -2,7 +2,7 @@ from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
 
 from file_opener import *
-from sheep_file import *
+# from sheep_file import *
 
 app = Ursina()
 window.exit_button.disable()
@@ -40,7 +40,7 @@ super_speed = 10
 super_jump = 10
 
 sheep_speed = 1
-how_many_sheeps = 0
+how_many_sheeps = 1
 
 texture_image_path = 'assets/grass.png'
 
@@ -69,6 +69,11 @@ ground_not_normal = True
 stone_depth = random.randint(3, 6)
 stone_choice = random.randint(1, 2)
 r_land = random.randint(1, 2)
+
+sheep_wait = 3
+sheep_lives = 1
+
+start_time = time.time()
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -433,6 +438,91 @@ class Sky(Entity):
                 self.texture = load_texture('assets/skybox.png')
                 player.cursor.color = color.black
 
+class Sheep(Entity):
+    def __init__(self, position = (0, 0, 0), block_pick = 1):
+        super().__init__(
+            parent = scene,
+            position = position,
+            model = 'assets/block',
+            origin_y = 0.5,
+            texture = load_texture('assets/sheep_block2.png'),
+            color = color.color(0, 0, random.uniform(0.9, 1)),
+            scale = 0.5,
+            rotation = Vec3(0, 180, 0),
+        )
+    
+    def update(self):
+        global sheep_speed
+        global start_time
+        global sheep_wait
+        global sheep_lives
+
+        origin = self.world_position + (self.up)
+
+        hit_info = raycast(origin=origin, direction=self.rotation_directions,
+                            ignore=(self,), distance=.5, debug=False)
+        
+        time_ = time.time() - start_time
+        if time_ >= sheep_wait:
+            where = random.randint(1, 4)
+            if where == 1:
+                if self.x < voxeles:
+                    if hit_info.hit == False:
+                        self.rotation = Vec3(0, 180, 0)
+                        self.x += sheep_speed
+                        self.state = 'x+'
+                        start_time = time.time()
+
+            if where == 2:
+                if self.x > 1:
+                    if hit_info.hit == False:
+                        self.rotation = Vec3(0, 360, 0)
+                        self.x -= sheep_speed
+                        self.state = 'x-'
+                        start_time = time.time()
+                
+            if where == 3:
+                if self.z < voxeles:
+                    if hit_info.hit == False:
+                        self.rotation = Vec3(0, 90, 0)
+                        self.z += sheep_speed
+                        self.state = 'z+'
+                        start_time = time.time()
+
+            if where == 4:
+                if self.z > 1:
+                    if hit_info.hit == False:
+                        self.rotation = Vec3(0, 270, 0)
+                        self.z -= sheep_speed
+                        self.state = 'z-'
+                        start_time = time.time()
+
+        if hit_info.hit:
+            if str(hit_info.entity.texture) == 'leaves_block.png':
+                destroy(hit_info.entity)
+            else:
+                pos = hit_info.entity.position
+                pos_x = pos[0]
+                pos_y = 13
+                pos_z = pos[2]
+                if self.state == 'x+':
+                    self.position = Vec3(pos_x - 1, pos_y, pos_z)
+                if self.state == 'x-':
+                    self.position = Vec3(pos_x + 1, pos_y, pos_z)
+                if self.state == 'z+':
+                    self.position = Vec3(pos_x, pos_y, pos_z - 1)
+                if self.state == 'z-':
+                    self.position = Vec3(pos_x, pos_y, pos_z + 1)
+        else:
+            sheep_speed = 1
+
+    def input(self, key):
+        if key == 'left mouse down':
+            print(mouse.hovered_entity)
+            if self.hovered:
+                print('lol')
+                # destroy(self)
+
 class Hand(Entity):
     def __init__(self):
         super().__init__(
@@ -462,17 +552,13 @@ class YouDied(WindowPanel):
     
     def input(self, key):
         global enable_state
-        if self.hovered:
-            if key == 'left mouse down':
+        if key == 'left mouse down':
+            if self.hovered:
                 self.disable()
                 enable_state = True
                 player.position = (3, 23, 3)
             else:
-                self.enable()
                 enable_state = False
-        else:
-            self.enable()
-            enable_state = False
     
     def update(self):
         if self.hovered:
@@ -569,6 +655,6 @@ trees = Trees(trees_number)
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
         r = random.randint(0, voxeles)
-        sheep = Sheep(position=(r, 13, r))
+        sheep = Sheep(position=(r, 13, r), block_pick = block_pick)
 
 app.run()
