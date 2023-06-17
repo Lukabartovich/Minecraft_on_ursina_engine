@@ -271,6 +271,7 @@ class Voxel(Button):
         global slime_number
         global glass_col
         global glass_forever
+        global block_pick
 
         if self.hovered:
             if key == 'left mouse down':
@@ -411,9 +412,9 @@ class Voxel(Button):
                 if block_pick == 17:
                     voxel = Voxel(position=self.position + mouse.normal, texture=tnt_texture)
 
-
             if key == 'right mouse down':
                 if self.texture == portal_texture:
+                    block_pick = 16
                     if portal_state == 2:
                         destroy(self)
                         portal_state = 1
@@ -425,9 +426,55 @@ class Voxel(Button):
                         index = 0
                     else:
                         print('nope')
+                elif self.texture == grass_texture:
+                    destroy(self)
+                    block_pick = 1
+                    # print('lol')
+                elif self.texture == dirt_texture:
+                    destroy(self)
+                    block_pick = 4
                 elif self.texture == glass_texture:
                     destroy(self)
-                    glass_col += 1
+                    block_pick = 11
+                elif self.texture == stone_texture:
+                    destroy(self)
+                    block_pick = 2
+                elif self.texture == brick_texture:
+                    destroy(self)
+                    block_pick = 3
+                elif self.texture == wood_texture:
+                    destroy(self)
+                    wood_col += 5
+                elif self.texture == water_texture:
+                    destroy(self)
+                    block_pick = 6
+                elif self.texture == fire_texture:
+                    destroy(self)
+                    block_pick = 7
+                elif self.texture == leaves_texture:
+                    destroy(self)
+                    block_pick = 8
+                elif self.texture == diamond_texture:
+                    destroy(self)
+                    block_pick = 9
+                elif self.texture == diamond_texture_2:
+                    destroy(self)
+                    block_pick = 13
+                elif self.texture == tnt_texture:
+                    destroy(self)
+                    block_pick = 17
+                elif self.texture == slime_texture:
+                    destroy(self)
+                    block_pick = 10
+                elif self.texture == sand_texture:
+                    destroy(self)
+                    block_pick = 12
+                elif self.texture == gold_texture_1:
+                    destroy(self)
+                    block_pick = 14
+                elif self.texture == gold_texture_2:
+                    destroy(self)
+                    block_pick = 15
                 else:
                     destroy(self)
             
