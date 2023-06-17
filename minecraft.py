@@ -61,7 +61,7 @@ super_fly_hight = 1
 glass_col = 0
 glass_forever = True
 
-falling_limit = -1
+falling_limit = -30
 
 ground_not_normal = False
 stone_depth = random.randint(3, 6)
@@ -570,7 +570,6 @@ class Sheep(Button):
                     sheep_spawn = True
                     new_sheep_time_start = time.time()
                     sheep_lives = 2
-
 
 class Hand(Entity):
     def __init__(self):
