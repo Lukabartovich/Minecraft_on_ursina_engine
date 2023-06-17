@@ -39,9 +39,6 @@ max_blocks = 18
 super_speed = 10
 super_jump = 10
 
-sheep_speed = 1
-how_many_sheeps = 1
-
 texture_image_path = 'assets/grass.png'
 
 portal_state = 0
@@ -55,25 +52,33 @@ slime_number = 0
 index = 0
 
 day_length = 60
-sunset_length = 10
+sunset_length = 25
 
-start_time = time.time()
 sky_state = 1
+
+super_fly_hight = 1
 
 glass_col = 0
 glass_forever = True
 
 falling_limit = -1
 
-ground_not_normal = True
+ground_not_normal = False
 stone_depth = random.randint(3, 6)
 stone_choice = random.randint(1, 2)
 r_land = random.randint(1, 2)
 
-sheep_wait = 3
-sheep_lives = 1
-
+sheep_wait = 2
+sheep_lives = 2
+sheep_speed = 1
+state = ''
 start_time = time.time()
+red_start_time = time.time()
+sheep_leaves = 0
+sheep_spawn_leaves = 0
+new_sheep_time_start = time.time()
+sheep_spawn = False
+how_many_sheeps = 0
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -86,6 +91,7 @@ def input(key):
     global max_blocks
     global block_pick
     global fly_hight
+    global super_fly_hight
 
     if key == 'f':
         if fly_state == False:
@@ -95,10 +101,10 @@ def input(key):
 
     if fly_state == True:
         if key == 'up arrow' or key == 'up arrow hold':
-            fly_hight += 1
+            fly_hight += super_fly_hight
             # print('up')
         if key == 'down arrow' or key == 'down arrow hold':
-            fly_hight -= 1
+            fly_hight -= super_fly_hight
             # print('down')
 
 
@@ -123,6 +129,12 @@ def update():
     global fly_state
     global index
     global migration
+    global sheep_spawn
+    global sheep_lives
+    global new_sheep_time_start
+    global sheep_leaves
+    global sheep_spawn_leaves
+    global super_fly_hight
 
     show = Show()
     if block_pick == 1:
@@ -171,12 +183,26 @@ def update():
     else:
         hand.passive()
 
+    if sheep_spawn == True:
+        if how_many_sheeps > 0:
+            time_  = time.time() - new_sheep_time_start
+            if time_ > random.randint(10, 60):
+                sheep = Sheep(position = (random.randint(0, voxeles - 1), 13, random.randint(0, voxeles - 1)))
+                sheep_spawn = False
+                new_sheep_time_start = time.time()
+                sheep_lives = 2
+    if sheep_spawn_leaves == True:
+        sheep = Sheep(position=(random.randint(0, voxeles - 1), 13, random.randint(0, voxeles - 1)))
+        sheep_spawn_leaves = False
+
     if held_keys['left control']:
         player.speed = super_speed
         player.jump_height = super_jump
+        super_fly_hight = 5
     else:
         player.speed = 5
         player.jump_height = 2
+        super_fly_hight = 1
         
     if enable_state == False:
         player.disable()
@@ -438,7 +464,7 @@ class Sky(Entity):
                 self.texture = load_texture('assets/skybox.png')
                 player.cursor.color = color.black
 
-class Sheep(Entity):
+class Sheep(Button):
     def __init__(self, position = (0, 0, 0)):
         super().__init__(
             parent = scene,
@@ -456,6 +482,11 @@ class Sheep(Entity):
         global start_time
         global sheep_wait
         global sheep_lives
+        global new_sheep_time_start
+        global sheep_spawn
+        global sheep_spawn_leaves
+        global sheep_leaves
+        global state
 
         origin = self.world_position + (self.up)
 
@@ -465,12 +496,13 @@ class Sheep(Entity):
         time_ = time.time() - start_time
         if time_ >= sheep_wait:
             where = random.randint(1, 4)
+            state = ''
             if where == 1:
                 if self.x < voxeles:
                     if hit_info.hit == False:
                         self.rotation = Vec3(0, 180, 0)
                         self.x += sheep_speed
-                        self.state = 'x+'
+                        state = 'x+'
                         start_time = time.time()
 
             if where == 2:
@@ -478,7 +510,7 @@ class Sheep(Entity):
                     if hit_info.hit == False:
                         self.rotation = Vec3(0, 360, 0)
                         self.x -= sheep_speed
-                        self.state = 'x-'
+                        state = 'x-'
                         start_time = time.time()
                 
             if where == 3:
@@ -486,7 +518,7 @@ class Sheep(Entity):
                     if hit_info.hit == False:
                         self.rotation = Vec3(0, 90, 0)
                         self.z += sheep_speed
-                        self.state = 'z+'
+                        state = 'z+'
                         start_time = time.time()
 
             if where == 4:
@@ -494,27 +526,51 @@ class Sheep(Entity):
                     if hit_info.hit == False:
                         self.rotation = Vec3(0, 270, 0)
                         self.z -= sheep_speed
-                        self.state = 'z-'
+                        state = 'z-'
                         start_time = time.time()
+
 
         if hit_info.hit:
             if str(hit_info.entity.texture) == 'leaves_block.png':
                 destroy(hit_info.entity)
+                sheep_leaves += 1
+                sheep_spawn_leaves = True
             else:
                 pos = hit_info.entity.position
                 pos_x = pos[0]
                 pos_y = 13
                 pos_z = pos[2]
-                if self.state == 'x+':
+                if state == 'x+':
                     self.position = Vec3(pos_x - 1, pos_y, pos_z)
-                if self.state == 'x-':
+                if state == 'x-':
                     self.position = Vec3(pos_x + 1, pos_y, pos_z)
-                if self.state == 'z+':
+                if state == 'z+':
                     self.position = Vec3(pos_x, pos_y, pos_z - 1)
-                if self.state == 'z-':
+                if state == 'z-':
                     self.position = Vec3(pos_x, pos_y, pos_z + 1)
         else:
             sheep_speed = 1
+
+    def input(self, key):
+        global sheep_lives
+        global red_start_time
+        global new_sheep_time_start
+        global sheep_spawn
+
+        if key == 'right mouse down':
+            if self.hovered:
+                if sheep_lives == 1:
+                    self.texture = load_texture('assets/red_sheep_block3.png')
+                    sheep_lives -= 1
+                elif sheep_lives == 2:
+                    self.texture = load_texture('assets/red_sheep_block1.png')
+                    sheep_lives -= 1
+                else:
+                    destroy(self)
+                    sheep_spawn = True
+                    new_sheep_time_start = time.time()
+                    sheep_lives = 2
+
 
 class Hand(Entity):
     def __init__(self):
