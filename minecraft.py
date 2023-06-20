@@ -80,7 +80,7 @@ sheep_leaves = 0
 sheep_spawn_leaves = 0
 new_sheep_time_start = time.time()
 sheep_spawn = False
-how_many_sheeps = 1
+how_many_sheeps = 0
 
 axe_state = False
 
