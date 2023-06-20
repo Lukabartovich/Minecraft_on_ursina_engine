@@ -80,8 +80,9 @@ sheep_leaves = 0
 sheep_spawn_leaves = 0
 new_sheep_time_start = time.time()
 sheep_spawn = False
-how_many_sheeps = 0
+how_many_sheeps = 1
 
+axe_state = False
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -95,6 +96,7 @@ def input(key):
     global block_pick
     global fly_hight
     global super_fly_hight
+    global axe_state
 
     if key == 'f':
         if fly_state == False:
@@ -110,6 +112,16 @@ def input(key):
             fly_hight -= super_fly_hight
             # print('down')
 
+    if key == 'p':
+        if axe_state == False:
+            axe_state = True
+        else:
+            axe_state = False
+
+    if axe_state == True:
+        axe.enable()
+    else:
+        axe.disable()
 
     if key == 'b':
         show = Show()
@@ -185,8 +197,10 @@ def update():
 
     if held_keys['left mouse'] or held_keys['right mouse']:
         hand.active()
+        axe.active()
     else:
         hand.passive()
+        axe.passive()
 
     if sheep_spawn == True:
         if how_many_sheeps > 0:
@@ -282,6 +296,7 @@ class Voxel(Button):
         global glass_col
         global glass_forever
         global block_pick
+        global axe_state
 
         if self.hovered:
             if key == 'left mouse down':
@@ -510,82 +525,159 @@ class Voxel(Button):
                         voxel2 = Voxel(position=pos, texture=door_texture_1)
 
             if key == 'right mouse down':
-                if self.texture == portal_texture:
-                    block_pick = 16
-                    if portal_state == 2:
+                if axe_state:
+                    texture = grass_texture
+                    i_ = self.intersects().entities
+                    for i in i_:
+                        if i.position == self.position - mouse.normal:
+                            # print(i.texture)
+                            vox = i
+                            texture = vox.texture
+                            destroy(vox, delay=0.15)
+                        else:
+                            texture = self.texture
+                    if texture == grass_texture:
                         destroy(self)
-                        portal_state = 1
-                        portal_ready = False
-                        index = 0
-                    elif portal_state == 1:
+                        block_pick = 1
+                        # print('lol')
+                    elif texture == dirt_texture:
                         destroy(self)
-                        portal_state = 0
-                        index = 0
+                        block_pick = 4
+                    elif texture == glass_texture:
+                        destroy(self)
+                        block_pick = 11
+                    elif texture == stone_texture:
+                        destroy(self)
+                        block_pick = 2
+                    elif texture == brick_texture:
+                        destroy(self)
+                        block_pick = 3
+                    elif texture == wood_texture:
+                        destroy(self)
+                        block_pick = 5
+                    elif texture == water_texture:
+                        destroy(self)
+                        block_pick = 6
+                    elif texture == fire_texture:
+                        destroy(self)
+                        block_pick = 7
+                    elif texture == leaves_texture:
+                        destroy(self)
+                        block_pick = 8
+                    elif texture == diamond_texture:
+                        destroy(self)
+                        block_pick = 9
+                    elif texture == diamond_texture_2:
+                        destroy(self)
+                        block_pick = 13
+                    elif texture == tnt_texture:
+                        destroy(self)
+                        block_pick = 17
+                    elif texture == slime_texture:
+                        destroy(self)
+                        block_pick = 10
+                    elif texture == sand_texture:
+                        destroy(self)
+                        block_pick = 12
+                    elif texture == gold_texture_1:
+                        destroy(self)
+                        block_pick = 14
+                    elif texture == gold_texture_2:
+                        destroy(self)
+                        block_pick = 15
+                    elif texture == door_texture_1:
+                        door_sigment_1 = self.intersects().entities
+                        for vox in door_sigment_1:
+                            if vox.texture == door_texture_2:
+                                if vox.y == self.y - 1:
+                                    v = vox
+                        try:
+                            destroy(v)
+                            destroy(self)
+                            block_pick = 18
+                            door_state = True
+                        except:
+                            pass
                     else:
-                        print('nope')
-                elif self.texture == grass_texture:
-                    destroy(self)
-                    block_pick = 1
-                    # print('lol')
-                elif self.texture == dirt_texture:
-                    destroy(self)
-                    block_pick = 4
-                elif self.texture == glass_texture:
-                    destroy(self)
-                    block_pick = 11
-                elif self.texture == stone_texture:
-                    destroy(self)
-                    block_pick = 2
-                elif self.texture == brick_texture:
-                    destroy(self)
-                    block_pick = 3
-                elif self.texture == wood_texture:
-                    destroy(self)
-                    block_pick = 5
-                elif self.texture == water_texture:
-                    destroy(self)
-                    block_pick = 6
-                elif self.texture == fire_texture:
-                    destroy(self)
-                    block_pick = 7
-                elif self.texture == leaves_texture:
-                    destroy(self)
-                    block_pick = 8
-                elif self.texture == diamond_texture:
-                    destroy(self)
-                    block_pick = 9
-                elif self.texture == diamond_texture_2:
-                    destroy(self)
-                    block_pick = 13
-                elif self.texture == tnt_texture:
-                    destroy(self)
-                    block_pick = 17
-                elif self.texture == slime_texture:
-                    destroy(self)
-                    block_pick = 10
-                elif self.texture == sand_texture:
-                    destroy(self)
-                    block_pick = 12
-                elif self.texture == gold_texture_1:
-                    destroy(self)
-                    block_pick = 14
-                elif self.texture == gold_texture_2:
-                    destroy(self)
-                    block_pick = 15
-                elif self.texture == door_texture_1:
-                    door_sigment_1 = self.intersects().entities
-                    for vox in door_sigment_1:
-                        if vox.texture == door_texture_2:
-                            v = vox
-                    try:
-                        destroy(v)
                         destroy(self)
-                        block_pick = 18
-                        door_state = True
-                    except:
-                        pass
                 else:
-                    destroy(self)
+                    if self.texture == portal_texture:
+                        block_pick = 16
+                        if portal_state == 2:
+                            destroy(self)
+                            portal_state = 1
+                            portal_ready = False
+                            index = 0
+                        elif portal_state == 1:
+                            destroy(self)
+                            portal_state = 0
+                            index = 0
+                        else:
+                            print('nope')
+                    elif self.texture == grass_texture:
+                        destroy(self)
+                        block_pick = 1
+                        # print('lol')
+                    elif self.texture == dirt_texture:
+                        destroy(self)
+                        block_pick = 4
+                    elif self.texture == glass_texture:
+                        destroy(self)
+                        block_pick = 11
+                    elif self.texture == stone_texture:
+                        destroy(self)
+                        block_pick = 2
+                    elif self.texture == brick_texture:
+                        destroy(self)
+                        block_pick = 3
+                    elif self.texture == wood_texture:
+                        destroy(self)
+                        block_pick = 5
+                    elif self.texture == water_texture:
+                        destroy(self)
+                        block_pick = 6
+                    elif self.texture == fire_texture:
+                        destroy(self)
+                        block_pick = 7
+                    elif self.texture == leaves_texture:
+                        destroy(self)
+                        block_pick = 8
+                    elif self.texture == diamond_texture:
+                        destroy(self)
+                        block_pick = 9
+                    elif self.texture == diamond_texture_2:
+                        destroy(self)
+                        block_pick = 13
+                    elif self.texture == tnt_texture:
+                        destroy(self)
+                        block_pick = 17
+                    elif self.texture == slime_texture:
+                        destroy(self)
+                        block_pick = 10
+                    elif self.texture == sand_texture:
+                        destroy(self)
+                        block_pick = 12
+                    elif self.texture == gold_texture_1:
+                        destroy(self)
+                        block_pick = 14
+                    elif self.texture == gold_texture_2:
+                        destroy(self)
+                        block_pick = 15
+                    elif self.texture == door_texture_1:
+                        door_sigment_1 = self.intersects().entities
+                        for vox in door_sigment_1:
+                            if vox.texture == door_texture_2:
+                                if vox.y == self.y - 1:
+                                    v = vox
+                        try:
+                            destroy(v)
+                            destroy(self)
+                            block_pick = 18
+                            door_state = True
+                        except:
+                            pass
+                    else:
+                        destroy(self)
             
 class Sky(Entity):
     def __init__(self):
@@ -643,6 +735,7 @@ class Sheep(Button):
         global sheep_spawn_leaves
         global sheep_leaves
         global state
+        global axe_state
 
         origin = self.world_position + (self.up)
 
@@ -715,6 +808,12 @@ class Sheep(Button):
 
         if key == 'right mouse down':
             if self.hovered:
+                if axe_state:
+                    destroy(self)
+                    destroy(self)
+                    sheep_spawn = True
+                    new_sheep_time_start = time.time()
+                    sheep_lives = 2
                 if sheep_lives == 1:
                     self.texture = load_texture('assets/red_sheep_block3.png')
                     sheep_lives -= 1
@@ -743,6 +842,24 @@ class Hand(Entity):
 
     def passive(self):
         self.position = Vec2(0.7, -0.6)
+
+class Pickaxe(Entity):
+    def __init__(self):
+        super().__init__(
+            parent = camera.ui,
+            model = 'assets/Diamond-Pickaxe',
+            texture = load_texture('assets/diamond_axe_tex.png'),
+            scale = 0.03,
+            # rotation = Vec3(150, -10, 0),
+            rotation = Vec3(150, 150, -90),
+            position = Vec2(0.45, -0.1),
+        )
+
+    def active(self):
+        self.position = Vec2(0.35, 0)
+
+    def passive(self):
+        self.position = Vec2(0.45, -0.1)
 
 class YouDied(WindowPanel):
     def __init__(self):
@@ -854,7 +971,8 @@ hand = Hand()
 show = Show()
 trees_number = random.randint(2, 7)
 trees = Trees(trees_number)
-
+axe = Pickaxe()
+axe.disable()
 
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
