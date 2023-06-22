@@ -1,5 +1,6 @@
 from ursina import *
 from ursina.prefabs.first_person_controller import FirstPersonController
+from database_class import Database
 
 from file_opener import *
 # from sheep_file import *
@@ -84,6 +85,24 @@ how_many_sheeps = 0
 
 axe_state = False
 
+cursor_color = color.black
+
+texture_col = 0
+
+posx = 0.0
+posy = -0.0
+
+inventory_open = False
+inventory_o = False
+inv_col = 0
+
+textures = [grass_texture, stone_texture, brick_texture,
+            dirt_texture, wood_texture, water_texture,
+            fire_texture, leaves_texture, diamond_texture,
+            tnt_texture, portal_texture, slime_texture, 
+            glass_texture, sand_texture, diamond_texture_2,
+            gold_texture_1, gold_texture_2]
+
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
     destroy(voxel, delay=0.3)
@@ -97,6 +116,11 @@ def input(key):
     global fly_hight
     global super_fly_hight
     global axe_state
+    global inventory_o
+    global inventory_open
+    global inv_col
+    global enable_state
+    global textures
 
     if key == 'f':
         if fly_state == False:
@@ -111,6 +135,25 @@ def input(key):
         if key == 'down arrow' or key == 'down arrow hold':
             fly_hight -= super_fly_hight
             # print('down')
+
+    if key == 'i':
+        if inv_col == 0:
+            inv_col = 1
+        else:
+            inventory_open = True
+        if inventory_o == False:
+            inventory_o = True
+        else:
+            inventory_o = False
+
+    if inventory_o == False:
+        bg.disable()
+        inventary.disable()
+        enable_state = True
+    else:
+        bg.enable()
+        inventary.enable()
+        enable_state = False
 
     if key == 'p':
         if axe_state == False:
@@ -138,6 +181,22 @@ def input(key):
         if block_pick > 1:
             block_pick -= 1
 
+    if key == '1':
+        db = Database(glass_texture)
+        block_pick = db.get_is_num(1)
+    if key == '2':
+        db = Database(glass_texture)
+        block_pick = db.get_is_num(2)
+    if key == '3':
+        db = Database(glass_texture)
+        block_pick = db.get_is_num(3)
+    if key == '4':
+        db = Database(glass_texture)
+        block_pick = db.get_is_num(4)
+    if key == '5':
+        db = Database(glass_texture)
+        block_pick = db.get_is_num(5)
+
 def update():
     global block_pick
     global enable_state
@@ -150,6 +209,16 @@ def update():
     global sheep_leaves
     global sheep_spawn_leaves
     global super_fly_hight
+    global cursor_color
+
+    hovered_voxel = mouse.hovered_entity
+    if hovered_voxel:
+        if hovered_voxel.texture == leaves_texture:
+            player.cursor.color = color.white
+        else:
+            player.cursor.color = cursor_color
+    else:
+            player.cursor.color = cursor_color
 
     show = Show()
     if block_pick == 1:
@@ -530,12 +599,13 @@ class Voxel(Button):
                     i_ = self.intersects().entities
                     for i in i_:
                         if i.position == self.position - mouse.normal:
-                            # print(i.texture)
+                            print(i.texture)
                             vox = i
-                            texture = vox.texture
+                            texture = i.texture
                             destroy(vox, delay=0.15)
-                        else:
-                            texture = self.texture
+                    if texture == grass_texture:
+                        texture = self.texture
+                    print(texture)
                     if texture == grass_texture:
                         destroy(self)
                         block_pick = 1
@@ -694,6 +764,7 @@ class Sky(Entity):
         global sky_state
         global day_length
         global sunset_length
+        global cursor_color
 
         time_ = time.time() - start_time
         # print(time_)
@@ -705,12 +776,14 @@ class Sky(Entity):
                 sky_state = 2
                 start_time = time.time()
                 self.texture = load_texture('assets/night_skybox.jpg')
-                player.cursor.color = color.white
+                cursor_color = color.white
+                player.cursor.color = cursor_color
             elif sky_state == 2:
                 sky_state = 1
                 start_time = time.time()
                 self.texture = load_texture('assets/skybox.png')
-                player.cursor.color = color.black
+                cursor_color = color.black
+                player.cursor.color = cursor_color
 
 class Sheep(Button):
     def __init__(self, position = (0, 0, 0)):
@@ -930,6 +1003,147 @@ class Trees():
                 if leave_int == 10:
                     leave = Voxel(position=(pos_x, trunk_length + 13 + 1, pos_z), texture=leaves_texture)
 
+class BG(Entity):
+    def __init__(self):
+        super().__init__(
+            parent = camera.ui,
+            model = 'quad',
+            scale = (0.56, 0.86),
+            texture = load_texture('bg_2.png'),
+            render_order = 0
+        )
+
+class Item(Draggable):
+    def __init__(self, contaner, type):
+        super().__init__(
+            parent = contaner,
+            model = 'quad',
+            texture = type,
+            color = color.white,
+            scale = (0.1, 0.1),
+            scale_x = 1 / (contaner.texture_scale[0] * 1.2),
+            scale_y = 1 / (contaner.texture_scale[1] * 1.2),
+            origin = (-0.6, 0.6),
+            render_order = 1
+        )
+
+    state = False
+
+    def drag(self):
+        self.xy_pos = [self.x, self.y]
+        self.render_order = 1
+
+    def drop(self):
+        self.x = int((self.x + self.scale_x/2) * 5) / 5
+        self.y = int((self.y - self.scale_y/2) * 8) / 8
+
+        x_ = float(str(self.x)[0:4])
+        y_ = float(str(self.y)[0:4])
+
+        if y_ == -0.8:
+            if x_ == 0:
+                db = Database(self.texture)
+                # print(self.texture)
+                db.set_position(x_, y_, True, True, False, False, False, False)
+            if x_ == 0.2:
+                db = Database(self.texture)
+                db.set_position(x_, y_, True, False, True, False, False, False)
+            if x_ == 0.4:
+                db = Database(self.texture)
+                db.set_position(x_, y_, True, False, False, True, False, False)
+            if x_ == 0.6:
+                db = Database(self.texture)
+                db.set_position(x_, y_, True, False, False, False, True, False)
+            if x_ == 0.8:
+                db = Database(self.texture)
+                db.set_position(x_, y_, True, False, False, False, False, True)
+        else:
+            db = Database(self.texture)
+            db.set_position(x_, y_, False, False, False, False, False, False)
+
+        print(self.y)
+        self.constrait()
+
+    def constrait(self):
+        if self.x < 0 or self.x > 1 or self.y > 0 or self.y < -1:
+            self.x = self.xy_pos[0]
+            self.y = self.xy_pos[1]
+
+class Grid(Entity):
+    def __init__(self):
+        super().__init__(
+            parent = camera.ui,
+            model = 'quad',
+            texture = load_texture('item_bg.png'),
+            texture_scale = (5, 8),
+            scale=(0.5, 0.8),
+            origin = (-0.5, 0.5),
+            position = (-0.25, 0.4)
+        )
+        self.import_textures()
+        self.add_new_item()
+
+    def add_new_item(self):
+        global texture_col
+        global posx
+        global posy
+
+        if inventory_open:
+            for i in range(len(self.textures)):   
+                d = Database(self.textures[i])
+                xy = d.get_position()
+                is_ = d.get_is()
+                # print(xy)
+                item = Item(self, self.textures[i])
+                item.drag()
+                item.x = xy[0]
+                item.y = xy[1]
+                if is_:
+                    print('is')
+                item.drop()
+        else:
+            for i in range(len(self.textures)):
+                item = Item(self, self.textures[i])
+                # print(item.texture)
+                if posx == 1:
+                    posx = 0.0
+                    posy -= 0.1
+                if float(str(posy)[0:4]) == -0.3:
+                    posy = -0.4
+                item.x = posx
+                item.y = posy
+                item.drag()
+                item.drop()
+                posx += 0.2
+                # print(float(str(posy)[0:4]))
+
+    def import_textures(self):
+        grass_texture = load_texture('assets/grass.png')
+        stone_texture = load_texture('assets/stone.png')
+        brick_texture = load_texture('assets/brick.png')
+        dirt_texture = load_texture('assets/dirt.png')
+        wood_texture = load_texture('assets/wood.png')
+        water_texture = load_texture('assets/water.jpg')
+        fire_texture = load_texture('assets/fire.jpg')
+        leaves_texture = load_texture('assets/leaves.png')
+        diamond_texture = load_texture('assets/diamond.jpg')
+        tnt_texture = load_texture('assets/the_tnt.jpg')
+        portal_texture = load_texture('assets/portal.jpg')
+        slime_texture = load_texture('assets/slime.png')
+        glass_texture = load_texture('assets/glass.png')
+        sand_texture = load_texture('assets/sand.jpg')
+        diamond_texture_2 = load_texture('assets/diamond2.jpg')
+        gold_texture_1 = load_texture('assets/gold1.jpg')
+        gold_texture_2 = load_texture('assets/gold2.jpg')
+        # door_texture_1 = load_texture('assets/door1.jpg')
+
+        self.textures = [grass_texture, stone_texture, brick_texture,
+                         dirt_texture, wood_texture, water_texture,
+                         fire_texture, leaves_texture, diamond_texture,
+                         tnt_texture, portal_texture, slime_texture, 
+                         glass_texture, sand_texture, diamond_texture_2,
+                         gold_texture_1, gold_texture_2]
+
 if ground_not_normal == True:
     for z in range(voxeles + 1):
         for x in range(voxeles + 1):
@@ -973,6 +1187,10 @@ trees_number = random.randint(2, 7)
 trees = Trees(trees_number)
 axe = Pickaxe()
 axe.disable()
+bg = BG()
+bg.disable()
+inventary = Grid()
+inventary.disable()
 
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
