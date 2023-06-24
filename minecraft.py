@@ -29,7 +29,7 @@ gold_texture_1 = load_texture('assets/gold_block1.png')
 gold_texture_2 = load_texture('assets/gold_block2.png')
 door_texture_1 = load_texture('assets/door_block_1.png')
 door_texture_2 = load_texture('assets/door_block_2.png')
-
+web_texture = load_texture('assets/web_block.png')
 
 block_pick = 1
 enable_state = True
@@ -37,7 +37,7 @@ fly_state = True
 fly_hight = 25
 
 voxeles = 15
-max_blocks = 19
+max_blocks = 20
 
 super_speed = 10
 super_jump = 10
@@ -84,6 +84,7 @@ sheep_spawn = False
 how_many_sheeps = 0
 
 axe_state = False
+sword_state = False
 
 cursor_color = color.black
 
@@ -96,12 +97,16 @@ inventory_open = False
 inventory_o = False
 inv_col = 0
 
+third_state = False
+t_s = False
+
 textures = [grass_texture, stone_texture, brick_texture,
             dirt_texture, wood_texture, water_texture,
             fire_texture, leaves_texture, diamond_texture,
             tnt_texture, portal_texture, slime_texture, 
             glass_texture, sand_texture, diamond_texture_2,
-            gold_texture_1, gold_texture_2]
+            gold_texture_1, gold_texture_2, door_texture_1,
+            web_texture]
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -116,12 +121,22 @@ def input(key):
     global fly_hight
     global super_fly_hight
     global axe_state
+    global sword_state
     global inventory_o
     global inventory_open
     global inv_col
     global enable_state
     global textures
+    global sheep_spawn
+    global third_state
 
+    # if key == 't':
+        # if third_state == False:
+        #     third_state = True
+        # else:
+        #     third_state = False
+    
+    
     if key == 'f':
         if fly_state == False:
             fly_state = True
@@ -155,16 +170,30 @@ def input(key):
         inventary.enable()
         enable_state = False
 
+    if key == 'o':
+        if sword_state == False:
+            sword_state = True
+            axe_state = False
+        else:
+            sword_state = False
     if key == 'p':
         if axe_state == False:
             axe_state = True
+            sword_state = False
         else:
             axe_state = False
 
     if axe_state == True:
         axe.enable()
+        sword.disable()
     else:
         axe.disable()
+
+    if sword_state == True:
+        sword.enable()
+        axe.disable()
+    else:
+        sword.disable()
 
     if key == 'b':
         show = Show()
@@ -210,6 +239,22 @@ def update():
     global sheep_spawn_leaves
     global super_fly_hight
     global cursor_color
+    global third_state
+    global t_s
+
+    # if third_state == True:
+    #     steve.enable()
+    #     steve.origin = (0, -15, -10)
+    #     steve.parent = player
+    #     # print(player.camera_pivot.z, player.camera_pivot.y)
+    #     player.camera_pivot.z = -3.5
+    #     player.camera_pivot.y = 3.5
+    #     t_s = False
+    # else:
+    #     steve.disable()
+    #     steve.parent = scene
+    #     player.camera_pivot.z = 0
+    #     player.camera_pivot.y = 2
 
     hovered_voxel = mouse.hovered_entity
     if hovered_voxel:
@@ -258,6 +303,8 @@ def update():
         show.texture = 'assets/the_tnt.jpg'
     if block_pick == 18:
         show.texture = 'assets/door1.jpg'
+    if block_pick == 19:
+        show.texture = 'assets/web.png'
 
     if player.position.y < falling_limit:
         player.position = (3, 23, 3)
@@ -267,9 +314,11 @@ def update():
     if held_keys['left mouse'] or held_keys['right mouse']:
         hand.active()
         axe.active()
+        sword.active()
     else:
         hand.passive()
         axe.passive()
+        sword.passive()
 
     if sheep_spawn == True:
         if how_many_sheeps > 0:
@@ -592,6 +641,8 @@ class Voxel(Button):
                         voxel1 = Voxel(position=self.position + mouse.normal, texture=door_texture_2)
                         pos = (voxel1.x, voxel1.y + 1, voxel1.z)
                         voxel2 = Voxel(position=pos, texture=door_texture_1)
+                    if block_pick == 19:
+                        voxel = Voxel(position=self.position + mouse.normal, texture=web_texture)
 
             if key == 'right mouse down':
                 if axe_state:
@@ -668,6 +719,9 @@ class Voxel(Button):
                             door_state = True
                         except:
                             pass
+                    elif self.texture == web_texture:
+                        destroy(self)
+                        block_pick = 19
                     else:
                         destroy(self)
                 else:
@@ -746,6 +800,9 @@ class Voxel(Button):
                             door_state = True
                         except:
                             pass
+                    elif self.texture == web_texture:
+                        destroy(self)
+                        block_pick = 19
                     else:
                         destroy(self)
             
@@ -881,7 +938,7 @@ class Sheep(Button):
 
         if key == 'right mouse down':
             if self.hovered:
-                if axe_state:
+                if axe_state or sword_state:
                     destroy(self)
                     destroy(self)
                     sheep_spawn = True
@@ -930,9 +987,31 @@ class Pickaxe(Entity):
 
     def active(self):
         self.position = Vec2(0.35, 0)
+        self.rotation = Vec3(110, 150, -90)
 
     def passive(self):
         self.position = Vec2(0.45, -0.1)
+        self.rotation = Vec3(150, 150, -90)
+
+class Sword(Entity):
+    def __init__(self):
+        super().__init__(
+            parent = camera.ui,
+            model = 'assets\DiamondSword',
+            texture = load_texture('assets/diamond_sword_texture.png'),
+            scale = 0.023,
+            # rotation = Vec3(150, -10, 0),
+            rotation = Vec3(70, 150, -90),
+            position = Vec2(0.45, -0.05),
+        )
+
+    def active(self):
+        self.position = Vec2(0.35, 0.05)
+        self.rotation = Vec3(30, 150, -90)
+
+    def passive(self):
+        self.position = Vec2(0.45, -0.05)
+        self.rotation = Vec3(70, 150, -90)
 
 class YouDied(WindowPanel):
     def __init__(self):
@@ -1104,6 +1183,7 @@ class Grid(Entity):
         else:
             for i in range(len(self.textures)):
                 item = Item(self, self.textures[i])
+                print(item.texture)
                 # print(item.texture)
                 if posx == 1:
                     posx = 0.0
@@ -1135,14 +1215,30 @@ class Grid(Entity):
         diamond_texture_2 = load_texture('assets/diamond2.jpg')
         gold_texture_1 = load_texture('assets/gold1.jpg')
         gold_texture_2 = load_texture('assets/gold2.jpg')
-        # door_texture_1 = load_texture('assets/door1.jpg')
+        door_texture_1 = load_texture('assets/door1.jpg')
+        web_texture = load_texture('assets/web.png')
 
         self.textures = [grass_texture, stone_texture, brick_texture,
                          dirt_texture, wood_texture, water_texture,
                          fire_texture, leaves_texture, diamond_texture,
                          tnt_texture, portal_texture, slime_texture, 
                          glass_texture, sand_texture, diamond_texture_2,
-                         gold_texture_1, gold_texture_2]
+                         gold_texture_1, gold_texture_2, door_texture_1,
+                         web_texture]
+
+class Steve(Entity):
+    def __init__(self):
+        super().__init__(
+            parent = scene,
+            model = 'assets/steve',
+            texture = load_texture('assets/steve.png'),
+            scale = 0.07,
+            origin = (0, -15, -10),
+            start_time = time.time()
+        )
+
+    state = ''
+      
 
 if ground_not_normal == True:
     for z in range(voxeles + 1):
@@ -1187,10 +1283,17 @@ trees_number = random.randint(2, 7)
 trees = Trees(trees_number)
 axe = Pickaxe()
 axe.disable()
+
+sword = Sword()
+sword.disable()
+
 bg = BG()
 bg.disable()
 inventary = Grid()
 inventary.disable()
+
+steve = Steve()
+steve.disable()
 
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
