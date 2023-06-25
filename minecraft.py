@@ -85,6 +85,7 @@ how_many_sheeps = 0
 
 axe_state = False
 sword_state = False
+green_sword_state = False
 
 cursor_color = color.black
 
@@ -108,6 +109,12 @@ textures = [grass_texture, stone_texture, brick_texture,
             gold_texture_1, gold_texture_2, door_texture_1,
             web_texture]
 
+sword_textures = [load_texture('assets/wood_sword_texture.png'),
+                    load_texture('assets/diamond_sword_texture.png'),
+                    load_texture('assets/green_sword_texture.png')]
+
+sword_num = 0
+
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
     destroy(voxel, delay=0.3)
@@ -129,6 +136,9 @@ def input(key):
     global textures
     global sheep_spawn
     global third_state
+    global green_sword_state
+    global sword_textures
+    global sword_num
 
     # if key == 't':
         # if third_state == False:
@@ -136,7 +146,17 @@ def input(key):
         # else:
         #     third_state = False
     
-    
+    if key == '.' or key == '. hold':
+        if sword_state == True:
+            if sword_num < len(sword_textures) - 1:
+                sword_num += 1
+                sword.texture = sword_textures[sword_num]
+    if key == ',' or key == ', hold':
+        if sword_state == True:
+            if sword_num > 0:
+                sword_num -= 1
+                sword.texture = sword_textures[sword_num]
+
     if key == 'f':
         if fly_state == False:
             fly_state = True
@@ -206,7 +226,7 @@ def input(key):
         else:
             block_pick = max_blocks - 1
 
-    if key == 'left arrow' or key == 'left arrow hold' or key == 'scroll up': 
+    if key == 'left arrow' or key == 'left arrow hold' or key == 'scroll up':
         if block_pick > 1:
             block_pick -= 1
 
@@ -415,6 +435,9 @@ class Voxel(Button):
         global glass_forever
         global block_pick
         global axe_state
+        global sword_state
+        global sword_num
+        global sword_textures
 
         if self.hovered:
             if key == 'left mouse down':
@@ -645,18 +668,17 @@ class Voxel(Button):
                         voxel = Voxel(position=self.position + mouse.normal, texture=web_texture)
 
             if key == 'right mouse down':
-                if axe_state:
+                if axe_state or str(sword_textures[sword_num]) == 'green_sword_texture.png':
                     texture = grass_texture
                     i_ = self.intersects().entities
                     for i in i_:
                         if i.position == self.position - mouse.normal:
-                            print(i.texture)
+                            # print(i.texture)
                             vox = i
                             texture = i.texture
                             destroy(vox, delay=0.15)
                     if texture == grass_texture:
                         texture = self.texture
-                    print(texture)
                     if texture == grass_texture:
                         destroy(self)
                         block_pick = 1
@@ -718,7 +740,7 @@ class Voxel(Button):
                             block_pick = 18
                             door_state = True
                         except:
-                            pass
+                            destroy(self)
                     elif self.texture == web_texture:
                         destroy(self)
                         block_pick = 19
@@ -749,11 +771,17 @@ class Voxel(Button):
                         destroy(self)
                         block_pick = 11
                     elif self.texture == stone_texture:
-                        destroy(self)
-                        block_pick = 2
+                        if str(sword_textures[sword_num]) == 'wood_sword_texture.png' and sword_state == True:
+                            sword_state = False
+                        else:
+                            destroy(self)
+                            block_pick = 2
                     elif self.texture == brick_texture:
-                        destroy(self)
-                        block_pick = 3
+                        if str(sword_textures[sword_num]) == 'wood_sword_texture.png' and sword_state == True:
+                            sword_state = False
+                        else:
+                            destroy(self)
+                            block_pick = 3
                     elif self.texture == wood_texture:
                         destroy(self)
                         block_pick = 5
@@ -767,11 +795,17 @@ class Voxel(Button):
                         destroy(self)
                         block_pick = 8
                     elif self.texture == diamond_texture:
-                        destroy(self)
-                        block_pick = 9
+                        if str(sword_textures[sword_num]) == 'wood_sword_texture.png' and sword_state == True:
+                            sword_state = False
+                        else:
+                            destroy(self)
+                            block_pick = 9
                     elif self.texture == diamond_texture_2:
-                        destroy(self)
-                        block_pick = 13
+                        if str(sword_textures[sword_num]) == 'wood_sword_texture.png' and sword_state == True:
+                            sword_state = False
+                        else:
+                            destroy(self)
+                            block_pick = 13
                     elif self.texture == tnt_texture:
                         destroy(self)
                         block_pick = 17
@@ -782,8 +816,11 @@ class Voxel(Button):
                         destroy(self)
                         block_pick = 12
                     elif self.texture == gold_texture_1:
-                        destroy(self)
-                        block_pick = 14
+                        if str(sword_textures[sword_num]) == 'wood_sword_texture.png' and sword_state == True:
+                            sword_state = False
+                        else:
+                            destroy(self)
+                            block_pick = 14
                     elif self.texture == gold_texture_2:
                         destroy(self)
                         block_pick = 15
@@ -799,7 +836,7 @@ class Voxel(Button):
                             block_pick = 18
                             door_state = True
                         except:
-                            pass
+                            destroy(self)
                     elif self.texture == web_texture:
                         destroy(self)
                         block_pick = 19
@@ -935,10 +972,13 @@ class Sheep(Button):
         global red_start_time
         global new_sheep_time_start
         global sheep_spawn
+        global sword_textures
+        global sword_num
 
         if key == 'right mouse down':
             if self.hovered:
-                if axe_state or sword_state:
+                if axe_state or str(sword_textures[sword_num]) == 'diamond_sword_texture.png' \
+                    or str(sword_textures[sword_num]) == 'green_sword_texture.png':
                     destroy(self)
                     destroy(self)
                     sheep_spawn = True
@@ -998,7 +1038,7 @@ class Sword(Entity):
         super().__init__(
             parent = camera.ui,
             model = 'assets\DiamondSword',
-            texture = load_texture('assets/diamond_sword_texture.png'),
+            texture = sword_textures[0],
             scale = 0.023,
             # rotation = Vec3(150, -10, 0),
             rotation = Vec3(70, 150, -90),
@@ -1225,19 +1265,6 @@ class Grid(Entity):
                          glass_texture, sand_texture, diamond_texture_2,
                          gold_texture_1, gold_texture_2, door_texture_1,
                          web_texture]
-
-class Steve(Entity):
-    def __init__(self):
-        super().__init__(
-            parent = scene,
-            model = 'assets/steve',
-            texture = load_texture('assets/steve.png'),
-            scale = 0.07,
-            origin = (0, -15, -10),
-            start_time = time.time()
-        )
-
-    state = ''
       
 
 if ground_not_normal == True:
@@ -1291,9 +1318,6 @@ bg = BG()
 bg.disable()
 inventary = Grid()
 inventary.disable()
-
-steve = Steve()
-steve.disable()
 
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
