@@ -1180,7 +1180,7 @@ class Item(Draggable):
             db = Database(self.texture)
             db.set_position(x_, y_, False, False, False, False, False, False)
 
-        print(self.y)
+        # print(self.y)
         self.constrait()
 
     def constrait(self):
@@ -1223,7 +1223,7 @@ class Grid(Entity):
         else:
             for i in range(len(self.textures)):
                 item = Item(self, self.textures[i])
-                print(item.texture)
+                # print(item.texture)
                 # print(item.texture)
                 if posx == 1:
                     posx = 0.0
