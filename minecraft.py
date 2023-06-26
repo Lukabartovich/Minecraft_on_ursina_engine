@@ -33,6 +33,7 @@ web_texture = load_texture('assets/web_block.png')
 
 block_pick = 1
 enable_state = True
+tenable_state = True
 fly_state = True
 fly_hight = 25
 
@@ -114,6 +115,13 @@ sword_textures = [load_texture('assets/wood_sword_texture.png'),
                     load_texture('assets/green_sword_texture.png')]
 
 sword_num = 0
+pickaxe_button = 'p'
+sword_button = 'o'
+sword_change_b = '.'
+sword_change_s = ','
+inv_button = 'i'
+
+terminal_state = False
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -139,25 +147,27 @@ def input(key):
     global green_sword_state
     global sword_textures
     global sword_num
+    global terminal_state
+    global tenable_state
 
-    # if key == 't':
-        # if third_state == False:
-        #     third_state = True
-        # else:
-        #     third_state = False
+    global pickaxe_button
+    global sword_button
+    global sword_change_b
+    global sword_change_s
+    global inv_button
     
-    if key == '.' or key == '. hold':
+    if key == sword_change_b:
         if sword_state == True:
             if sword_num < len(sword_textures) - 1:
                 sword_num += 1
                 sword.texture = sword_textures[sword_num]
-    if key == ',' or key == ', hold':
+    if key == sword_change_s:
         if sword_state == True:
             if sword_num > 0:
                 sword_num -= 1
                 sword.texture = sword_textures[sword_num]
 
-    if key == 'f':
+    if key == 'f' and terminal_state == False:
         if fly_state == False:
             fly_state = True
         else:
@@ -171,7 +181,7 @@ def input(key):
             fly_hight -= super_fly_hight
             # print('down')
 
-    if key == 'i':
+    if key == inv_button and terminal_state == False:
         if inv_col == 0:
             inv_col = 1
         else:
@@ -180,6 +190,19 @@ def input(key):
             inventory_o = True
         else:
             inventory_o = False
+
+    if key == 't' and terminal_state == False:
+        terminal_state = True
+        terminal.tinput.text = ''
+    if key == 'escape' and terminal_state == True:
+        terminal_state = False
+
+    if terminal_state == False:
+        terminal.disable()
+        tenable_state = True
+    else:
+        terminal.enable()
+        tenable_state = False
 
     if inventory_o == False:
         bg.disable()
@@ -190,13 +213,13 @@ def input(key):
         inventary.enable()
         enable_state = False
 
-    if key == 'o':
+    if key == sword_button and terminal_state == False:
         if sword_state == False:
             sword_state = True
             axe_state = False
         else:
             sword_state = False
-    if key == 'p':
+    if key == pickaxe_button and terminal_state == False:
         if axe_state == False:
             axe_state = True
             sword_state = False
@@ -261,6 +284,7 @@ def update():
     global cursor_color
     global third_state
     global t_s
+    global tenable_state
 
     # if third_state == True:
     #     steve.enable()
@@ -361,7 +385,7 @@ def update():
         player.jump_height = 2
         super_fly_hight = 1
         
-    if enable_state == False:
+    if enable_state == False or tenable_state == False:
         player.disable()
     else:
         player.enable()
@@ -438,8 +462,9 @@ class Voxel(Button):
         global sword_state
         global sword_num
         global sword_textures
+        global terminal_state
 
-        if self.hovered:
+        if self.hovered and terminal_state == False:
             if key == 'left mouse down':
                 if self.texture == door_texture_1:
                     door_sigment_2 = self.intersects().entity
@@ -1266,6 +1291,93 @@ class Grid(Entity):
                          gold_texture_1, gold_texture_2, door_texture_1,
                          web_texture]
       
+class Terminal(Entity):
+    def __init__(self):
+        super().__init__(
+            parent = camera.ui,
+            model = 'quad',
+            color = color.black90,
+            scale = (0.58, 0.05),
+            position = (-0.59, -0.47),
+        )
+
+    state = False
+    input_text = ''
+    tinput = InputField()
+    tinput.disable()
+
+    t_state = False
+    sheep_col = 0
+
+    def input(self, key):
+        if key == 'enter':
+            self.check()
+        if key == 't' and self.state == False:
+            self.tinput.parent = self
+            print(self.tinput.scale)
+            self.tinput.scale = (1, 1, 0)
+            self.tinput.enable()
+
+            self.state = True
+            self.tinput.text = ''
+        if key == 'escape' and self.state == True:
+            self.tinput.text = ''
+            self.tinput.disable()
+            self.state = False
+
+    def update(self):
+        if sky.texture == load_texture('assets/skybox.png'):
+            self.color = color.white
+            self.tinput.text_color = color.black90
+        else:
+            self.color = color.black90
+            self.tinput.text_color = color.white
+
+    def check(self):
+        global how_many_sheeps
+        global sheep
+        global pickaxe_button
+        global sword_button
+        global sword_change_b
+        global sword_change_s
+        global inv_button
+        global falling_limit
+
+        text = str(self.tinput.text)
+        if len(text) > 13: # sheep
+            if text[0: 13] == '/sheep col = ':
+                how_many_sheeps = int(text[-1])
+                if how_many_sheeps > 0:
+                    for i in range(how_many_sheeps):
+                        r = random.randint(0, voxeles)
+                        sheep = Sheep(position=(r, 13, r))
+                        self.sheep_col += 1
+                else:
+                    print(self.sheep_col)
+                    for i in range(self.sheep_col, 0, -1):
+                        destroy(sheep)
+
+        print(f'"{text[0: 15]}"')
+        if text[0: 15] == '/pickaxe btn = ': #pickaxe
+            pickaxe_button = str(text[-1])
+
+        if text[0: 13] == '/sword btn = ': #sword
+            sword_button = str(text[-1])
+
+        if text[0: 15] == '/sword + btn = ': #sword +
+            sword_change_b = str(text[-1])
+
+        if text[0: 15] == '/sword - btn = ': #sword -
+            sword_change_s = str(text[-1])
+
+        if text[0: 11] == '/inv btn = ': #inventory
+            inv_button = str(text[-1])
+
+        if text[0: 17] == '/falling limit = ': #falling limit
+            list1 = text.split()
+            falling_limit = int(list1[-1])
+
+        self.tinput.text = ''
 
 if ground_not_normal == True:
     for z in range(voxeles + 1):
@@ -1318,6 +1430,9 @@ bg = BG()
 bg.disable()
 inventary = Grid()
 inventary.disable()
+
+terminal = Terminal()
+terminal.disable()
 
 if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
