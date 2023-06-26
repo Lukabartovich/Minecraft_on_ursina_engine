@@ -1345,7 +1345,7 @@ class Terminal(Entity):
             list1 = text.split()
             sheep_lives = int(list1[-1])
 
-        print(f'"{text[0: 15]}"')
+        # print(f'"{text[0: 15]}"')
         if text[0: 15] == '/pickaxe btn = ': #pickaxe
             pickaxe_button = str(text[-1])
 
