@@ -121,10 +121,14 @@ sword_change_b = '.'
 sword_change_s = ','
 inv_button = 'i'
 
+pant_button = '/'
+
 terminal_state = False
 
 sheep_list = []
 tree_list = []
+
+pant_col = -360
 
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
@@ -158,6 +162,7 @@ def input(key):
     global sword_change_b
     global sword_change_s
     global inv_button
+    global pant_button
     
     if key == sword_change_b:
         if sword_state == True:
@@ -169,6 +174,9 @@ def input(key):
             if sword_num > 0:
                 sword_num -= 1
                 sword.texture = sword_textures[sword_num]
+
+    if key == pant_button and terminal_state == False and sword_state == True:
+        sword.pant()
 
     if key == 'f' and terminal_state == False:
         if fly_state == False:
@@ -1069,6 +1077,13 @@ class Sword(Entity):
         self.position = Vec2(0.45, -0.05)
         self.rotation = Vec3(70, 150, -90)
 
+    def pant(self):
+        global pant_col
+
+        self.rotation = Vec3(70, 170, -90)
+        self.animate_rotation_x(pant_col, 0.7)
+        self.rotation = Vec3(70, 150, -90)
+
 class YouDied(WindowPanel):
     def __init__(self):
         super().__init__(
@@ -1338,6 +1353,8 @@ class Terminal(Entity):
         global sheep_list
         global sheep_lives
         global tree_list
+        global pant_button
+        global pant_col
 
         text = str(self.tinput.text)
         if len(text) > 13: # sheep
@@ -1363,6 +1380,13 @@ class Terminal(Entity):
         if text[0: 13] == '/sword btn = ': #sword
             sword_button = str(text[-1])
 
+        if text[0: 13] == '/twist btn = ': #twist
+            pant_button = str(text[-1])
+
+        if text[0: 13] == '/twist col = ': #twist col
+            list1 = text.split()
+            pant_col = int(list1[-1])
+
         if text[0: 15] == '/sword + btn = ': #sword +
             sword_change_b = str(text[-1])
 
@@ -1379,11 +1403,11 @@ class Terminal(Entity):
         if text == '/exit': #exit
             quit()
 
-        if text == '/trees destroy': #trees destroy
+        if text == '/destroy trees': #trees destroy
             for i in range(len(tree_list)):
                 destroy(tree_list[i])
 
-        if text == '/add trees': #add trees
+        if text == '/trees': #add trees
             trees_number = random.randint(2, 7)
             trees = Trees(trees_number)
 
