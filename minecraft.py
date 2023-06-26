@@ -1325,14 +1325,6 @@ class Terminal(Entity):
             self.tinput.disable()
             self.state = False
 
-    def update(self):
-        if sky.texture == load_texture('assets/skybox.png'):
-            self.color = color.white
-            self.tinput.text_color = color.black90
-        else:
-            self.color = color.black90
-            self.tinput.text_color = color.white
-
     def check(self):
         global how_many_sheeps
         global sheep
