@@ -991,8 +991,8 @@ class Sheep(Button):
 
         if key == 'right mouse down':
             if self.hovered:
-                if axe_state or str(sword_textures[sword_num]) == 'diamond_sword_texture.png' \
-                    or str(sword_textures[sword_num]) == 'green_sword_texture.png':
+                if axe_state or (str(sword_textures[sword_num]) == 'diamond_sword_texture.png' \
+                    or str(sword_textures[sword_num]) == 'green_sword_texture.png' and sword_state == True):
                     destroy(self)
                     destroy(self)
                     sheep_spawn = True
@@ -1004,11 +1004,13 @@ class Sheep(Button):
                 elif sheep_lives == 2:
                     self.texture = load_texture('assets/red_sheep_block1.png')
                     sheep_lives -= 1
-                else:
+                elif sheep_lives == 0:
                     destroy(self)
                     sheep_spawn = True
                     new_sheep_time_start = time.time()
                     sheep_lives = 2
+                else:
+                    sheep_lives -= 1
 
 class Hand(Entity):
     def __init__(self):
@@ -1324,6 +1326,7 @@ class Terminal(Entity):
         global inv_button
         global falling_limit
         global sheep_list
+        global sheep_lives
 
         text = str(self.tinput.text)
         if len(text) > 13: # sheep
@@ -1337,6 +1340,10 @@ class Terminal(Entity):
                 else:
                     for i in range(len(sheep_list)):
                         destroy(sheep_list[i])
+
+        if text[0: 15] == '/sheep lives = ': #sheep lives
+            list1 = text.split()
+            sheep_lives = int(list1[-1])
 
         print(f'"{text[0: 15]}"')
         if text[0: 15] == '/pickaxe btn = ': #pickaxe
@@ -1357,6 +1364,9 @@ class Terminal(Entity):
         if text[0: 17] == '/falling limit = ': #falling limit
             list1 = text.split()
             falling_limit = int(list1[-1])
+
+        if text == '/exit': #exit
+            quit()
 
         self.tinput.text = ''
 
