@@ -1113,30 +1113,40 @@ class Trees():
             pos_z = random.randint(1, voxeles - 1)
             trunk_length = random.randint(3, 6)
 
-
             for trunk_part_int in range(0, trunk_length):
                 trunk_part = Voxel(position=(pos_x, trunk_part_int + 13, pos_z), texture=tree_texture)
+                tree_list.append(trunk_part)
             for leave_int in range(11):
                 if leave_int == 1:
                     leave = Voxel(position=(pos_x, trunk_length + 13, pos_z), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 2:
                     leave = Voxel(position=(pos_x+1, trunk_length + 13, pos_z), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 3:
                     leave = Voxel(position=(pos_x, trunk_length + 13, pos_z+1), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 4:
                     leave = Voxel(position=(pos_x+1, trunk_length + 13, pos_z+1), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 5:
                     leave = Voxel(position=(pos_x-1, trunk_length + 13, pos_z), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 6:
                     leave = Voxel(position=(pos_x, trunk_length + 13, pos_z-1), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 7:
                     leave = Voxel(position=(pos_x-1, trunk_length + 13, pos_z-1), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 8:
                     leave = Voxel(position=(pos_x + 1, trunk_length + 13, pos_z - 1), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 9:
                     leave = Voxel(position=(pos_x - 1, trunk_length + 13, pos_z + 1), texture=leaves_texture)
+                    tree_list.append(leave)
                 if leave_int == 10:
                     leave = Voxel(position=(pos_x, trunk_length + 13 + 1, pos_z), texture=leaves_texture)
+                    tree_list.append(leave)
 
 class BG(Entity):
     def __init__(self):
@@ -1327,6 +1337,7 @@ class Terminal(Entity):
         global falling_limit
         global sheep_list
         global sheep_lives
+        global tree_list
 
         text = str(self.tinput.text)
         if len(text) > 13: # sheep
@@ -1367,6 +1378,14 @@ class Terminal(Entity):
 
         if text == '/exit': #exit
             quit()
+
+        if text == '/trees destroy': #trees destroy
+            for i in range(len(tree_list)):
+                destroy(tree_list[i])
+
+        if text == '/add trees': #add trees
+            trees_number = random.randint(2, 7)
+            trees = Trees(trees_number)
 
         self.tinput.text = ''
 
