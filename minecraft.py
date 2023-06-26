@@ -123,6 +123,9 @@ inv_button = 'i'
 
 terminal_state = False
 
+sheep_list = []
+tree_list = []
+
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
     destroy(voxel, delay=0.3)
@@ -285,20 +288,6 @@ def update():
     global third_state
     global t_s
     global tenable_state
-
-    # if third_state == True:
-    #     steve.enable()
-    #     steve.origin = (0, -15, -10)
-    #     steve.parent = player
-    #     # print(player.camera_pivot.z, player.camera_pivot.y)
-    #     player.camera_pivot.z = -3.5
-    #     player.camera_pivot.y = 3.5
-    #     t_s = False
-    # else:
-    #     steve.disable()
-    #     steve.parent = scene
-    #     player.camera_pivot.z = 0
-    #     player.camera_pivot.y = 2
 
     hovered_voxel = mouse.hovered_entity
     if hovered_voxel:
@@ -1334,6 +1323,7 @@ class Terminal(Entity):
         global sword_change_s
         global inv_button
         global falling_limit
+        global sheep_list
 
         text = str(self.tinput.text)
         if len(text) > 13: # sheep
@@ -1343,11 +1333,10 @@ class Terminal(Entity):
                     for i in range(how_many_sheeps):
                         r = random.randint(0, voxeles)
                         sheep = Sheep(position=(r, 13, r))
-                        self.sheep_col += 1
+                        sheep_list.append(sheep)
                 else:
-                    print(self.sheep_col)
-                    for i in range(self.sheep_col, 0, -1):
-                        destroy(sheep)
+                    for i in range(len(sheep_list)):
+                        destroy(sheep_list[i])
 
         print(f'"{text[0: 15]}"')
         if text[0: 15] == '/pickaxe btn = ': #pickaxe
@@ -1430,5 +1419,6 @@ if how_many_sheeps > 0:
     for i in range(how_many_sheeps):
         r = random.randint(0, voxeles)
         sheep = Sheep(position=(r, 13, r))
+        sheep_list.append(sheep)
 
 app.run()
