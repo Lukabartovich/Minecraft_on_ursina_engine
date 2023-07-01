@@ -36,7 +36,7 @@ block_pick_state = False
 
 class Database:
     def __init__(self, texture):
-        self.database = 'files/database.db'
+        self.database = 'Minecraft_on_ursina_engine/files/database.db'
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
         self.string = ''
