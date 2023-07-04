@@ -30,6 +30,8 @@ gold_texture_2 = load_texture('assets/gold_block2.png')
 door_texture_1 = load_texture('assets/door_block_1.png')
 door_texture_2 = load_texture('assets/door_block_2.png')
 web_texture = load_texture('assets/web_block.png')
+piston_texture = load_texture('assets/piston_block_1.png')
+piston_texture_2 = load_texture('assets/piston_block_3.png')
 
 block_pick = 1
 enable_state = True
@@ -38,7 +40,7 @@ fly_state = False
 fly_hight = 25
 
 voxeles = 15
-max_blocks = 20
+max_blocks = 22
 
 super_speed = 10
 super_jump = 10
@@ -407,6 +409,10 @@ def update():
         show.texture = 'assets/door1.jpg'
     if block_pick == 19:
         show.texture = 'assets/web.png'
+    if block_pick == 20:
+        show.texture = 'assets/button.png'
+    if block_pick == 21:
+        show.texture = 'assets/piston.png'
 
     if player.position.y < falling_limit:
         player.position = (3, 23, 3)
@@ -493,7 +499,7 @@ def update():
                 migration = 1
 
 class Voxel(Button):
-    def __init__(self, position = (0, 0, 0), texture = grass_texture):
+    def __init__(self, position = (0, 0, 0), texture = grass_texture, mouse_normal = None):
         super().__init__(
             parent = scene,
             position = position,
@@ -503,6 +509,7 @@ class Voxel(Button):
             color = color.color(0, 0, random.uniform(0.9, 1)),
             scale = 0.5,
             )
+        self.mouse_normal = mouse_normal
         
     door_state = True
     door_where = ''
@@ -521,9 +528,11 @@ class Voxel(Button):
         global sword_num
         global sword_textures
         global terminal_state
-        global throw_axe_state
 
         if self.hovered and terminal_state == False:
+            if key == 'middle mouse down':
+                self.rotation = (0, self.rotation_y + 90, 0)
+                print(self.rotation)
             if key == 'left mouse down':
                     if self.texture == door_texture_1:
                         door_sigment_2 = self.intersects().entity
@@ -604,7 +613,6 @@ class Voxel(Button):
                             pos = (self.x, self.y-1, self.z)
                             door_sigment_2.position = pos
                             self.door_state = True
-
                     else:
                         if block_pick == 1:
                             voxel = Voxel(position=self.position + mouse.normal, texture=grass_texture)
@@ -750,9 +758,13 @@ class Voxel(Button):
                             voxel2 = Voxel(position=pos, texture=door_texture_1)
                         if block_pick == 19:
                             voxel = Voxel(position=self.position + mouse.normal, texture=web_texture)
+                        if block_pick == 20:
+                            btn = Btn(position=self.position)
+                        if block_pick == 21:
+                            voxel = Voxel(position=self.position + mouse.normal, texture=piston_texture)
 
             if key == 'right mouse down':
-                if axe_state or str(sword_textures[sword_num]) == 'green_sword_texture.png':
+                if axe_state or (str(sword_textures[sword_num]) == 'green_sword_texture.png' and sword_state == True):
                     texture = grass_texture
                     i_ = self.intersects().entities
                     for i in i_:
@@ -927,6 +939,13 @@ class Voxel(Button):
                     else:
                         destroy(self)
             
+    def upate(self):
+        if self.mouse_normal:
+            print(self.mouse_normal)
+            self.y = self.mouse_normal.y * 90
+            self.x = self.mouse_normal.x * 90
+            self.z = self.mouse_normal.z * 90
+
 class Sky(Entity):
     def __init__(self):
         super().__init__(
@@ -1364,6 +1383,8 @@ class Grid(Entity):
         gold_texture_2 = load_texture('assets/gold2.jpg')
         door_texture_1 = load_texture('assets/door1.jpg')
         web_texture = load_texture('assets/web.png')
+        button_texture = load_texture('assets/button.png')
+        piston_texture = load_texture('assets/piston.png')
 
         self.textures = [grass_texture, stone_texture, brick_texture,
                          dirt_texture, wood_texture, water_texture,
@@ -1371,7 +1392,7 @@ class Grid(Entity):
                          tnt_texture, portal_texture, slime_texture, 
                          glass_texture, sand_texture, diamond_texture_2,
                          gold_texture_1, gold_texture_2, door_texture_1,
-                         web_texture]
+                         web_texture, button_texture, piston_texture]
       
 class Terminal(Entity):
     def __init__(self):
@@ -1424,6 +1445,8 @@ class Terminal(Entity):
         global how_many_pigs
         global pig_list
         global creeper_list
+        global day_length
+        global sunset_length
 
         text = str(self.tinput.text)
         if len(text) > 13: # sheep
@@ -1498,6 +1521,14 @@ class Terminal(Entity):
         if text == '/destroy creeper': #creeper destroy
             for creeper in creeper_list:
                 destroy(creeper)
+
+        if text[0: 14] == '/day length = ': #day length
+            list1 = text.split()
+            day_length = int(eval(list1[-1]))
+
+        if text[0: 17] == '/sunset length = ': #sunset length
+            list1 = text.split()
+            sunset_length = int(eval(list1[-1]))
 
         self.tinput.text = ''
 
@@ -1601,6 +1632,215 @@ class Creeper(Button):
                     explote(self)
                     creeper = Creeper(position=(random.randint(0, voxeles), 13, random.randint(0, voxeles)))
                     creeper_list.append(creeper)
+
+class Btn(Button):
+    def __init__(self, position = (0, 12, 0)):
+        super().__init__(
+            parent = scene,
+            position = position,
+            model = 'assets/block',
+            origin_y = -3.5,
+            texture = load_texture('assets/stone_block.png'),
+            color = color.color(0, 0, random.uniform(0.9, 1)),
+            scale = 0.1)
+
+    state = False
+
+    def input(self, key):
+        if self.hovered:
+            if key == 'left mouse down':
+                self.origin_y = -2.5
+                interes = self.intersects()
+                the_voxel = interes.entity
+                if the_voxel:
+                    if the_voxel.texture == piston_texture:
+                        # print(the_voxel.rotation)
+                        if the_voxel.rotation == Vec3(0, 0, 0):
+                            if self.state == False:
+                                vox = None
+                                v = Voxel(texture=piston_texture_2)
+                                v.disable()
+                                list_of_voxels = the_voxel.intersects().entities
+                                for i in list_of_voxels:
+                                    if i.position.x == the_voxel.position.x - 1 \
+                                        and i.position.y == the_voxel.position.y \
+                                        and i.position.z == the_voxel.position.z:
+                                        vox = i
+                                if vox:
+                                    pos = vox.position
+                                    vox.x -= 1
+                                    v.position = pos
+                                    v.enable()
+                                    self.state = True
+                                else:
+                                    v.position = (self.x - 1, self.y, self.z)
+                                    v.enable()
+                                    self.state = True
+                            elif self.state == True:
+                                vox1 = None
+                                vox2 = None
+                                list_of_voxels = the_voxel.intersects().entities
+                                for i in list_of_voxels:
+                                    if i.position.x == the_voxel.position.x - 1 \
+                                        and i.position.y == the_voxel.position.y \
+                                        and i.position.z == the_voxel.position.z:
+                                        vox1 = i
+                                        list_of_voxels = vox1.intersects().entities
+                                        for i in list_of_voxels:
+                                            if i.position.x == vox1.position.x - 1 \
+                                                and i.position.y == vox1.position.y \
+                                                and i.position.z == vox1.position.z:
+                                                vox2 = i
+
+                                if vox2:
+                                    destroy(vox1)
+                                    vox2.x += 1
+                                    self.state = False
+                                else:
+                                    destroy(vox1)
+                                    self.state = False
+
+                        elif the_voxel.rotation == (0, 90, 0):
+                            if self.state == False:
+                                vox = None
+                                v = Voxel(texture=piston_texture_2)
+                                v.disable()
+                                list_of_voxels = the_voxel.intersects().entities
+                                for i in list_of_voxels:
+                                    if i.position.x == the_voxel.position.x \
+                                        and i.position.y == the_voxel.position.y \
+                                        and i.position.z == the_voxel.position.z +1:
+                                        vox = i
+                                if vox:
+                                    pos = vox.position
+                                    vox.z += 1
+                                    v.position = pos
+                                    v.enable()
+                                    self.state = True
+                                else:
+                                    v.position = (self.x, self.y, self.z + 1)
+                                    v.enable()
+                                    self.state = True
+                            elif self.state == True:
+                                vox1 = None
+                                vox2 = None
+                                list_of_voxels = the_voxel.intersects().entities
+                                for i in list_of_voxels:
+                                    if i.position.x == the_voxel.position.x \
+                                        and i.position.y == the_voxel.position.y \
+                                        and i.position.z == the_voxel.position.z +1:
+                                        vox1 = i
+                                        list_of_voxels = vox1.intersects().entities
+                                        for i in list_of_voxels:
+                                            if i.position.x == vox1.position.x \
+                                                and i.position.y == vox1.position.y \
+                                                and i.position.z == vox1.position.z +1:
+                                                vox2 = i
+
+                                if vox2:
+                                    destroy(vox1)
+                                    vox2.z -= 1
+                                    self.state = False
+                                else:
+                                    destroy(vox1)
+                                    self.state = False
+
+                        elif the_voxel.rotation == (0, 180, 0):
+                            if self.state == False:
+                                vox = None
+                                v = Voxel(texture=piston_texture_2)
+                                v.disable()
+                                list_of_voxels = the_voxel.intersects().entities
+                                for i in list_of_voxels:
+                                    if i.position.x == the_voxel.position.x + 1\
+                                        and i.position.y == the_voxel.position.y \
+                                        and i.position.z == the_voxel.position.z:
+                                        vox = i
+                                if vox:
+                                    pos = vox.position
+                                    vox.x += 1
+                                    v.position = pos
+                                    v.enable()
+                                    self.state = True
+                                else:
+                                    v.position = (self.x + 1, self.y, self.z)
+                                    v.enable()
+                                    self.state = True
+                            elif self.state == True:
+                                vox1 = None
+                                vox2 = None
+                                list_of_voxels = the_voxel.intersects().entities
+                                for i in list_of_voxels:
+                                    if i.position.x == the_voxel.position.x +1\
+                                        and i.position.y == the_voxel.position.y \
+                                        and i.position.z == the_voxel.position.z:
+                                        vox1 = i
+                                        list_of_voxels = vox1.intersects().entities
+                                        for i in list_of_voxels:
+                                            if i.position.x == vox1.position.x +1\
+                                                and i.position.y == vox1.position.y \
+                                                and i.position.z == vox1.position.z:
+                                                vox2 = i
+
+                                if vox2:
+                                    destroy(vox1)
+                                    vox2.x -= 1
+                                    self.state = False
+                                else:
+                                    destroy(vox1)
+                                    self.state = False
+                            
+                        elif the_voxel.rotation == (0, 270, 0):
+                            if self.state == False:
+                                vox = None
+                                v = Voxel(texture=piston_texture_2)
+                                v.disable()
+                                list_of_voxels = the_voxel.intersects().entities
+                                for i in list_of_voxels:
+                                    if i.position.x == the_voxel.position.x\
+                                        and i.position.y == the_voxel.position.y \
+                                        and i.position.z == the_voxel.position.z - 1:
+                                        vox = i
+                                if vox:
+                                    pos = vox.position
+                                    vox.z -= 1
+                                    v.position = pos
+                                    v.enable()
+                                    self.state = True
+                                else:
+                                    v.position = (self.x, self.y, self.z - 1)
+                                    v.enable()
+                                    self.state = True
+                            elif self.state == True:
+                                vox1 = None
+                                vox2 = None
+                                list_of_voxels = the_voxel.intersects().entities
+                                for i in list_of_voxels:
+                                    if i.position.x == the_voxel.position.x\
+                                        and i.position.y == the_voxel.position.y \
+                                        and i.position.z == the_voxel.position.z - 1:
+                                        vox1 = i
+                                        list_of_voxels = vox1.intersects().entities
+                                        for i in list_of_voxels:
+                                            if i.position.x == vox1.position.x\
+                                                and i.position.y == vox1.position.y \
+                                                and i.position.z == vox1.position.z - 1:
+                                                vox2 = i
+
+                                if vox2:
+                                    destroy(vox1)
+                                    vox2.z += 1
+                                    self.state = False
+                                else:
+                                    destroy(vox1)
+                                    self.state = False
+
+                else:
+                    self.origin_y = -3.5
+
+            if key == 'right mouse down':
+                destroy(self)
+        
 
 if ground_not_normal == True:
     for z in range(voxeles + 1):
