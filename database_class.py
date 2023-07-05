@@ -22,6 +22,8 @@ gold_texture_1 = 'gold1.jpg'
 gold_texture_2 = 'gold2.jpg'
 door_texture_1 = 'door1.jpg'
 web_texture = 'web.png'
+button_texture = 'button.png'
+piston_texture = 'piston.png'
 
 textures = [grass_texture, stone_texture, brick_texture,
             dirt_texture, wood_texture, water_texture,
@@ -29,14 +31,14 @@ textures = [grass_texture, stone_texture, brick_texture,
             tnt_texture, portal_texture, slime_texture, 
             glass_texture, sand_texture, diamond_texture_2,
             gold_texture_1, gold_texture_2, door_texture_1,
-            web_texture]
+            web_texture, button_texture, piston_texture]
 
 block_pick = 0
 block_pick_state = False
 
 class Database:
     def __init__(self, texture):
-        self.database = 'Minecraft_on_ursina_engine/files/database.db'
+        self.database = 'files/database.db'
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
         self.string = ''
@@ -78,6 +80,10 @@ class Database:
             self.string = 'door'
         if str(texture) == web_texture:
             self.string = 'web'
+        if str(texture) == button_texture:
+            self.string = 'button'
+        if str(texture) == piston_texture:
+            self.string = 'piston'
 
     def get_position(self):
         str_x = f'SELECT "pos_x" from "blocks" WHERE "texture" = "{self.string}"'
@@ -184,6 +190,12 @@ class Database:
             block_pick_state = True
         elif texture == 'web':
             block_pick = 19
+            block_pick_state = True
+        elif texture == 'button':
+            block_pick = 20
+            block_pick_state = True
+        elif texture == 'piston':
+            block_pick = 21
             block_pick_state = True
 
         return block_pick
