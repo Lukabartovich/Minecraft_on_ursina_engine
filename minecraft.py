@@ -1447,6 +1447,9 @@ class Terminal(Entity):
         global creeper_list
         global day_length
         global sunset_length
+        global super_speed
+        global super_jump
+        global super_fly_hight
 
         text = str(self.tinput.text)
         if len(text) > 13: # sheep
@@ -1529,6 +1532,18 @@ class Terminal(Entity):
         if text[0: 17] == '/sunset length = ': #sunset length
             list1 = text.split()
             sunset_length = int(eval(list1[-1]))
+
+        if text[0: 15] == '/super speed = ': #super speed
+            list1 = text.split()
+            super_speed = int(eval(list1[-1]))
+
+        if text[0: 14] == '/super jump = ': #super jump
+            list1 = text.split()
+            super_jump = int(eval(list1[-1]))
+
+        if text[0: 13] == '/super fly = ': #super fly
+            list1 = text.split()
+            super_fly_hight = int(eval(list1[-1]))
 
         self.tinput.text = ''
 
