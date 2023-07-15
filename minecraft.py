@@ -105,6 +105,13 @@ inv_col = 0
 third_state = False
 t_s = False
 
+portal_voxel1 = None
+portal_voxel2 = None
+portal_state_ = 0
+portal_state == True
+portal_distance_1 = None
+portal_distance_2 = None
+
 textures = [grass_texture, stone_texture, brick_texture,
             dirt_texture, wood_texture, water_texture,
             fire_texture, leaves_texture, diamond_texture,
@@ -115,7 +122,8 @@ textures = [grass_texture, stone_texture, brick_texture,
 
 sword_textures = [load_texture('assets/wood_sword_texture.png'),
                     load_texture('assets/diamond_sword_texture.png'),
-                    load_texture('assets/green_sword_texture.png')]
+                    load_texture('assets/green_sword_texture.png'),
+                    load_texture('assets/thunder_sword_texture.png')]
 
 sword_num = 0
 pickaxe_button = 'p'
@@ -137,46 +145,55 @@ how_many_pigs = 0
 
 pant_col = -360
 
+creeper_forever = False
+
+terminal_password = '0-0'
+
+global_thunder_time = 1
+thunder_state = False
+
 def v_minus(voxel):
     pos = (voxel.x, voxel.y - 1, voxel.z)
     destroy(voxel, delay=0.3)
     voxel = Voxel(position=pos, texture=fire_texture)
     destroy(voxel, delay=0.3)
 
-def explote(voxel):
+def explote(voxel, explote_self = False, texture = fire_texture):
     try:
         voxel_interes = voxel.intersects()
         tnt_position = voxel_interes.entity.position
         destroy(voxel, delay=0.2)
         destroy(voxel_interes.entity)
-        voxel1 = Voxel(position=tnt_position + LVector3f(0, 0, -1), texture = fire_texture)
+        voxel1 = Voxel(position=tnt_position + LVector3f(0, 0, -1), texture = texture)
         voxel1_int = voxel1.intersects()
         voxel11 = voxel1_int.entity
-        voxel2 = Voxel(position=tnt_position + LVector3f(-1, 0, 0), texture = fire_texture)
+        voxel2 = Voxel(position=tnt_position + LVector3f(-1, 0, 0), texture = texture)
         voxel2_int = voxel2.intersects()
         voxel21 = voxel2_int.entity
-        voxel3 = Voxel(position=tnt_position + LVector3f(0, 0, 1), texture = fire_texture)
+        voxel3 = Voxel(position=tnt_position + LVector3f(0, 0, 1), texture = texture)
         voxel3_int = voxel3.intersects()
         voxel31 = voxel3_int.entity
-        voxel4 = Voxel(position=tnt_position + LVector3f(1, 0, 0), texture = fire_texture)
+        voxel4 = Voxel(position=tnt_position + LVector3f(1, 0, 0), texture = texture)
         voxel4_int = voxel4.intersects()
         voxel41 = voxel4_int.entity
-        voxel5 = Voxel(position=tnt_position + LVector3f(0, 0, 0), texture = fire_texture)
+        voxel5 = Voxel(position=tnt_position + LVector3f(0, 0, 0), texture = texture)
         voxel5_int = voxel5.intersects()
         voxel51 = voxel5_int.entity
-        voxel6 = Voxel(position=tnt_position + LVector3f(1, 0, 1), texture = fire_texture)
+        voxel6 = Voxel(position=tnt_position + LVector3f(1, 0, 1), texture = texture)
         voxel6_int = voxel6.intersects()
         voxel61 = voxel6_int.entity
-        voxel7 = Voxel(position=tnt_position + LVector3f(1, 0, -1), texture = fire_texture)
+        voxel7 = Voxel(position=tnt_position + LVector3f(1, 0, -1), texture = texture)
         voxel7_int = voxel7.intersects()
         voxel71 = voxel7_int.entity
                             
-        voxel8 = Voxel(position=tnt_position + LVector3f(-1, 0, 1), texture = fire_texture)
+        voxel8 = Voxel(position=tnt_position + LVector3f(-1, 0, 1), texture = texture)
         voxel8_int = voxel8.intersects()
         voxel81 = voxel8_int.entity
-        voxel9 = Voxel(position=tnt_position + LVector3f(-1, 0, -1), texture = fire_texture)
+        voxel9 = Voxel(position=tnt_position + LVector3f(-1, 0, -1), texture = texture)
         voxel9_int = voxel9.intersects()
         voxel91 = voxel9_int.entity
+        if explote_self == True:
+            destroy(voxel, delay=0.5)
         destroy(voxel11)
         destroy(voxel21)
         destroy(voxel31)
@@ -359,6 +376,44 @@ def update():
     global third_state
     global t_s
     global tenable_state
+    global portal_voxel1
+    global portal_voxel2
+    global portal_state_
+    global portal_state
+    global portal_distance_1
+    global portal_distance_2
+
+    if portal_voxel1 and portal_state_ == 1:
+        portal_distance_1 = int(distance(portal_voxel1, player))
+    elif portal_voxel2 and portal_state_ == 2:
+        portal_distance_2 = int(distance(portal_voxel2, player))
+
+    # print(migration)
+
+    if portal_voxel2:
+        portal_state = True
+    if portal_state:
+        if migration == 0:
+            portal_distance_1 = int(distance(portal_voxel1, player))
+            portal_distance_2 = int(distance(portal_voxel2, player))
+            if portal_distance_1 and portal_distance_1 < 2:
+                print('portal 1')
+                player.x = portal_voxel2.x
+                player.y = portal_voxel2.y + 1
+                player.z = portal_voxel2.z
+                migration = 1
+            if portal_distance_2 and portal_distance_2 < 2:
+                print('portal 2')
+                player.x = portal_voxel1.x
+                player.y = portal_voxel1.y + 1
+                player.z = portal_voxel1.z
+                migration = 1
+
+    if migration == 1:
+        portal_distance_1 = int(distance(portal_voxel1, player))
+        portal_distance_2 = int(distance(portal_voxel2, player))
+        if portal_distance_1 > 2 and portal_distance_2 > 2:
+            migration = 0
 
     hovered_voxel = mouse.hovered_entity
     if hovered_voxel:
@@ -460,44 +515,6 @@ def update():
     else:
         player.gravity = 1
 
-    if portal_ready == True and fly_state == True:
-        portals_position = [open_file('files/portal1.txt'), open_file('files/portal2.txt')]
-        if str(list((int(player.position.x), int(player.position.z)))) in portals_position:
-            index = portals_position.index(str(list((int(player.position.x), int(player.position.z))))) + 1
-        elif str(list((int(player.position.x+1), int(player.position.z+1)))) in portals_position:
-            index = portals_position.index(str(list((int(player.position.x+1), int(player.position.z+1))))) + 1
-        elif str(list((int(player.position.x+1), int(player.position.z)))) in portals_position:
-            index = portals_position.index(str(list((int(player.position.x+1), int(player.position.z))))) + 1
-        elif str(list((int(player.position.x), int(player.position.z+1)))) in portals_position:
-            index = portals_position.index(str(list((int(player.position.x), int(player.position.z+1))))) + 1
-        elif str(list((int(player.position.x-1), int(player.position.z-1)))) in portals_position:
-            index = portals_position.index(str(list((int(player.position.x-1), int(player.position.z-1))))) + 1
-        elif str(list((int(player.position.x-1), int(player.position.z)))) in portals_position:
-            index = portals_position.index(str(list((int(player.position.x-1), int(player.position.z))))) + 1
-        elif str(list((int(player.position.x), int(player.position.z-1)))) in portals_position:
-            index = portals_position.index(str(list((int(player.position.x), int(player.position.z-1))))) + 1
-        else:
-            index = 0
-            migration = 0
-        
-        if migration == 0:
-            if index == 1:
-                position_x = int(open_file('files/portal2_position_x.txt'))
-                position_z = int(open_file('files/portal2_position_z.txt'))
-                position_y = int(open_file('files/portal2_position_y.txt')) + 1
-                player.y = position_y
-                player.x = position_x
-                player.z = position_z
-                migration = 1
-            if index == 2:
-                position_x = int(open_file('files/portal1_position_x.txt'))
-                position_z = int(open_file('files/portal1_position_z.txt'))
-                position_y = int(open_file('files/portal1_position_y.txt')) + 1
-                player.y = position_y
-                player.x = position_x
-                player.z = position_z
-                migration = 1
-
 class Voxel(Button):
     def __init__(self, position = (0, 0, 0), texture = grass_texture, mouse_normal = None):
         super().__init__(
@@ -514,6 +531,7 @@ class Voxel(Button):
     door_state = True
     door_where = ''
     pos_door = ()
+    portal_state = None
 
     def input(self, key):
         global texture_image_path
@@ -528,9 +546,14 @@ class Voxel(Button):
         global sword_num
         global sword_textures
         global terminal_state
+        global portal_voxel1
+        global portal_voxel2
+        global portal_state_
+
+        # print(key)
 
         if self.hovered and terminal_state == False:
-            if key == 'middle mouse down':
+            if key == 'r':
                 self.rotation = (0, self.rotation_y + 90, 0)
                 print(self.rotation)
             if key == 'left mouse down':
@@ -729,25 +752,16 @@ class Voxel(Button):
                         if block_pick == 15:
                             voxel = Voxel(position=self.position + mouse.normal, texture=gold_texture_2)
                         if block_pick == 16:
-                            if portal_state == 0:
-                                voxel = Voxel(position=self.position + mouse.normal, texture=portal_texture)
-                                portal_state = 1
-                                print(1)
-                                write_file('files/portal1.txt', str(list((int(self.position.x), int(self.position.z)))))
-                                write_file('files/portal1_position_x.txt', f'{int(self.position.x)}')
-                                write_file('files/portal1_position_z.txt', f'{int(self.position.z)}')
-                                write_file('files/portal1_position_y.txt', f'{int(self.position.y)}')
-                            elif portal_state == 1:
-                                voxel = Voxel(position=self.position + mouse.normal, texture = portal_texture)
-                                portal_state = 2
-                                portal_ready = True
-                                print(2)
-                                write_file('files/portal2.txt', str(list((int(self.position.x), int(self.position.z)))))
-                                write_file('files/portal2_position_x.txt', f'{int(self.position.x)}')
-                                write_file('files/portal2_position_z.txt', f'{int(self.position.z)}')
-                                write_file('files/portal2_position_y.txt', f'{int(self.position.y)}')
-                            else:
-                                print('no place')
+                            if portal_state_ == 0:
+                                portal_voxel1 = Voxel(position=self.position + mouse.normal, 
+                                                      texture=portal_texture)
+                                portal_voxel1.portal_state = 1
+                                portal_state_ = 1
+                            elif portal_state_ == 1:
+                                portal_voxel2 = Voxel(position=self.position + mouse.normal, 
+                                                      texture=portal_texture)
+                                portal_voxel2.portal_state = 2
+                                portal_state_ = 2
                         if block_pick == 17:
                             voxel = Voxel(position=self.position + mouse.normal, texture=tnt_texture)
                         if block_pick == 18:
@@ -764,6 +778,60 @@ class Voxel(Button):
                             voxel = Voxel(position=self.position + mouse.normal, texture=piston_texture)
 
             if key == 'right mouse down':
+                if str(sword_textures[sword_num]) == 'thunder_sword_texture.png' and sword_state:
+                    # print('THUNDER!!!!!')
+                    sky.thunder()
+                    explote(self, texture=load_texture('assets/clear.png'))
+                    texture = self.texture
+                    if texture == grass_texture:
+                        block_pick = 1
+                        # print('lol')
+                    elif texture == dirt_texture:
+                        block_pick = 4
+                    elif texture == glass_texture:
+                        block_pick = 11
+                    elif texture == stone_texture:
+                        block_pick = 2
+                    elif texture == brick_texture:
+                        block_pick = 3
+                    elif texture == wood_texture:
+                        block_pick = 5
+                    elif texture == water_texture:
+                        block_pick = 6
+                    elif texture == fire_texture:
+                        block_pick = 7
+                    elif texture == leaves_texture:
+                        block_pick = 8
+                    elif texture == diamond_texture:
+                        block_pick = 9
+                    elif texture == diamond_texture_2:
+                        block_pick = 13
+                    elif texture == tnt_texture:
+                        block_pick = 17
+                    elif texture == slime_texture:
+                        block_pick = 10
+                    elif texture == sand_texture:
+                        block_pick = 12
+                    elif texture == gold_texture_1:
+                        block_pick = 14
+                    elif texture == gold_texture_2:
+                        block_pick = 15
+                    elif texture == door_texture_1:
+                        door_sigment_1 = self.intersects().entities
+                        for vox in door_sigment_1:
+                            if vox.texture == door_texture_2:
+                                if vox.y == self.y - 1:
+                                    v = vox
+                        try:
+                            block_pick = 18
+                            door_state = True
+                        except:
+                            pass
+                    elif self.texture == web_texture:
+                        block_pick = 19
+                    else:
+                        destroy(self)
+
                 if axe_state or (str(sword_textures[sword_num]) == 'green_sword_texture.png' and sword_state == True):
                     texture = grass_texture
                     i_ = self.intersects().entities
@@ -845,17 +913,7 @@ class Voxel(Button):
                 else:
                     if self.texture == portal_texture:
                         block_pick = 16
-                        if portal_state == 2:
-                            destroy(self)
-                            portal_state = 1
-                            portal_ready = False
-                            index = 0
-                        elif portal_state == 1:
-                            destroy(self)
-                            portal_state = 0
-                            index = 0
-                        else:
-                            print('nope')
+                        destroy(self)
                     elif self.texture == grass_texture:
                         destroy(self)
                         block_pick = 1
@@ -939,12 +997,21 @@ class Voxel(Button):
                     else:
                         destroy(self)
             
-    def upate(self):
+    def update(self):
         if self.mouse_normal:
             print(self.mouse_normal)
             self.y = self.mouse_normal.y * 90
             self.x = self.mouse_normal.x * 90
             self.z = self.mouse_normal.z * 90
+        # if self.texture == fire_texture:
+        #     if self.intersects().entity:
+        #         list1 = self.intersects().entities
+        #         for i in list1:
+        #             if i and i.position:
+        #                 if i.texture == tnt_texture and i.position.y == self.y - 1 and i.x == self.x and i.z == self.z:
+        #                     # print('tnt')
+        #                     explote(i, True)
+        #                     # destroy(self, delay = 0.5)
 
 class Sky(Entity):
     def __init__(self):
@@ -955,6 +1022,8 @@ class Sky(Entity):
             scale = 200,
             double_sided = True
         )
+
+    thunder_time = time.time()
     
     def update(self):
         global start_time
@@ -963,25 +1032,49 @@ class Sky(Entity):
         global sunset_length
         global cursor_color
         global night_length
+        global global_thunder_time
+        global thunder_state
 
-        time_ = time.time() - start_time
-        # print(time_)
-        if int(time_) > day_length - sunset_length:
-            self.texture = load_texture('assets/sunset_skybox.jpg')
+        # print(thunder_state)
 
-        if int(time_) > day_length + sunset_length:
-            if sky_state == 1:
-                sky_state = 2
-                start_time = time.time()
-                self.texture = load_texture('assets/night_skybox.jpg')
-                cursor_color = color.white
-                player.cursor.color = cursor_color
-            elif sky_state == 2:
-                sky_state = 1
-                start_time = time.time()
+        if thunder_state:
+            time_ = time.time() - start_time
+            if time_ > global_thunder_time:
+                thunder_state = False
+                # print('no ')
                 self.texture = load_texture('assets/skybox.png')
-                cursor_color = color.black
-                player.cursor.color = cursor_color
+            else:
+                self.rotation_y = random.randint(0, 360)
+        else:
+            time_ = time.time() - start_time
+            # print(time_)
+            # print(time_)
+            if int(time_) > day_length:
+                self.texture = load_texture('assets/sunset_skybox.jpg')
+
+            if int(time_) > day_length + sunset_length:
+                if sky_state == 1:
+                    sky_state = 2
+                    start_time = time.time()
+                    self.texture = load_texture('assets/night_skybox.jpg')
+                    cursor_color = color.white
+                    player.cursor.color = cursor_color
+                elif sky_state == 2:
+                    sky_state = 1
+                    start_time = time.time()
+                    self.texture = load_texture('assets/skybox.png')
+                    cursor_color = color.black
+                    player.cursor.color = cursor_color
+
+    def thunder(self):
+        global thunder_state
+        global start_time
+        global sword_state
+
+        self.thunder_time = time.time()
+        thunder_state = True
+        self.texture = load_texture('assets/thunder.jpeg')
+        start_time = time.time()
 
 class Sheep(Button):
     def __init__(self, position = (0, 0, 0)):
@@ -1409,8 +1502,27 @@ class Terminal(Entity):
     tinput = InputField()
     tinput.disable()
 
+    password_state = False
+    password = terminal_password
+
     t_state = False
     sheep_col = 0
+
+    def update(self):
+        if self.password_state:
+            # print(sky.texture)
+            if str(sky.texture) == 'night_skybox.jpg':
+                self.color = color.white
+                self.tinput.color = color.white
+                self.tinput.text_color = color.black
+            else:
+                self.color = color.black90
+                self.tinput.color = color.black90
+                self.tinput.text_color = color.white
+        else:
+            self.color = color.red
+            self.tinput.color = color.red
+            self.tinput.text_color = color.black90
 
     def input(self, key):
         if key == 'enter':
@@ -1450,101 +1562,121 @@ class Terminal(Entity):
         global super_speed
         global super_jump
         global super_fly_hight
+        global creeper_forever
 
         text = str(self.tinput.text)
-        if len(text) > 13: # sheep
-            if text[0: 13] == '/sheep col = ':
-                how_many_sheeps = int(text[-1])
-                if how_many_sheeps > 0:
-                    for i in range(how_many_sheeps):
-                        r = random.randint(0, voxeles)
-                        sheep = Sheep(position=(r, 13, r))
-                        sheep_list.append(sheep)
-                else:
-                    for i in range(len(sheep_list)):
-                        destroy(sheep_list[i])
 
-        if text[0: 11] == '/pig col = ': # pig col
-                how_many_pigs = int(text[-1])
-                if how_many_pigs > 0:
-                    for i in range(how_many_pigs):
-                        r = random.randint(0, voxeles)
-                        pig = Pig(position=(r, 13, r))
-                        pig_list.append(pig)
-                else:
-                    for i in range(len(pig_list)):
-                        destroy(pig_list[i])
+        if text == f'{self.password}':
+            self.password_state = True
 
-        if text[0: 15] == '/sheep lives = ': #sheep lives
-            list1 = text.split()
-            sheep_lives = int(list1[-1])
+        if self.password_state == True:
+            if len(text) > 13: # sheep
+                if text[0: 13] == '/sheep col = ':
+                    how_many_sheeps = int(text[-1])
+                    if how_many_sheeps > 0:
+                        for i in range(how_many_sheeps):
+                            r = random.randint(0, voxeles)
+                            sheep = Sheep(position=(r, 13, r))
+                            sheep_list.append(sheep)
+                    else:
+                        for i in range(len(sheep_list)):
+                            destroy(sheep_list[i])
 
-        # print(f'"{text[0: 15]}"')
-        if text[0: 15] == '/pickaxe btn = ': #pickaxe
-            pickaxe_button = str(text[-1])
+            if text[0: 11] == '/pig col = ': # pig col
+                    how_many_pigs = int(text[-1])
+                    if how_many_pigs > 0:
+                        for i in range(how_many_pigs):
+                            r = random.randint(0, voxeles)
+                            pig = Pig(position=(r, 13, r))
+                            pig_list.append(pig)
+                    else:
+                        for i in range(len(pig_list)):
+                            destroy(pig_list[i])
 
-        if text[0: 13] == '/sword btn = ': #sword
-            sword_button = str(text[-1])
+            if text[0: 15] == '/sheep lives = ': #sheep lives
+                list1 = text.split()
+                sheep_lives = int(list1[-1])
 
-        if text[0: 13] == '/twist btn = ': #twist
-            pant_button = str(text[-1])
+            # print(f'"{text[0: 15]}"')
+            if text[0: 15] == '/pickaxe btn = ': #pickaxe
+                pickaxe_button = str(text[-1])
 
-        if text[0: 13] == '/twist col = ': #twist col
-            list1 = text.split()
-            pant_col = int(list1[-1])
+            if text[0: 13] == '/sword btn = ': #sword
+                sword_button = str(text[-1])
 
-        if text[0: 15] == '/sword + btn = ': #sword +
-            sword_change_b = str(text[-1])
+            if text[0: 13] == '/twist btn = ': #twist
+                pant_button = str(text[-1])
 
-        if text[0: 15] == '/sword - btn = ': #sword -
-            sword_change_s = str(text[-1])
+            if text[0: 13] == '/twist col = ': #twist col
+                list1 = text.split()
+                pant_col = int(eval(list1[-1]))
 
-        if text[0: 11] == '/inv btn = ': #inventory
-            inv_button = str(text[-1])
+            if text[0: 15] == '/sword + btn = ': #sword +
+                sword_change_b = str(text[-1])
 
-        if text[0: 17] == '/falling limit = ': #falling limit
-            list1 = text.split()
-            falling_limit = int(list1[-1])
+            if text[0: 15] == '/sword - btn = ': #sword -
+                sword_change_s = str(text[-1])
 
-        if text == '/exit': #exit
-            quit()
+            if text[0: 11] == '/inv btn = ': #inventory
+                inv_button = str(text[-1])
 
-        if text == '/destroy trees': #trees destroy
-            for i in range(len(tree_list)):
-                destroy(tree_list[i])
+            if text[0: 17] == '/falling limit = ': #falling limit
+                list1 = text.split()
+                falling_limit = int(list1[-1])
 
-        if text == '/trees': #add trees
-            trees_number = random.randint(2, 7)
-            trees = Trees(trees_number)
+            if text == '/exit': #exit
+                quit()
 
-        if text == '/creeper': #creeper
-            creeper = Creeper(position=(random.randint(0, voxeles), 13, random.randint(0, voxeles)))
-            creeper_list.append(creeper)
+            if text == '/destroy trees': #trees destroy
+                for i in range(len(tree_list)):
+                    destroy(tree_list[i])
 
-        if text == '/destroy creeper': #creeper destroy
-            for creeper in creeper_list:
-                destroy(creeper)
+            if text == '/trees': #add trees
+                trees_number = random.randint(2, 7)
+                trees = Trees(trees_number)
 
-        if text[0: 14] == '/day length = ': #day length
-            list1 = text.split()
-            day_length = int(eval(list1[-1]))
+            if text == '/creeper': #creeper
+                creeper = Creeper(position=(random.randint(0, voxeles), 13, random.randint(0, voxeles)))
+                creeper_list.append(creeper)
 
-        if text[0: 17] == '/sunset length = ': #sunset length
-            list1 = text.split()
-            sunset_length = int(eval(list1[-1]))
+            if text == '/destroy creeper': #creeper destroy
+                for creeper in creeper_list:
+                    destroy(creeper)
 
-        if text[0: 15] == '/super speed = ': #super speed
-            list1 = text.split()
-            super_speed = int(eval(list1[-1]))
+            if text[0: 14] == '/day length = ': #day length
+                list1 = text.split()
+                day_length = int(eval(list1[-1]))
 
-        if text[0: 14] == '/super jump = ': #super jump
-            list1 = text.split()
-            super_jump = int(eval(list1[-1]))
+            if text[0: 17] == '/sunset length = ': #sunset length
+                list1 = text.split()
+                sunset_length = int(eval(list1[-1]))
 
-        if text[0: 13] == '/super fly = ': #super fly
-            list1 = text.split()
-            super_fly_hight = int(eval(list1[-1]))
+            if text[0: 15] == '/super speed = ': #super speed
+                list1 = text.split()
+                super_speed = int(eval(list1[-1]))
 
+            if text[0: 14] == '/super jump = ': #super jump
+                list1 = text.split()
+                super_jump = int(eval(list1[-1]))
+
+            if text[0: 13] == '/super fly = ': #super fly
+                list1 = text.split()
+                super_fly_hight = int(eval(list1[-1]))
+
+            if text == '/creeper for ever': #creeper for ever
+                creeper_forever = True
+            
+            if text == '/creeper not for ever': #creeper not for ever
+                creeper_forever = False
+
+            if text == '/lock': #lock
+                self.password_state = False
+
+            if text[0:12] == '/password = ': #password
+                list1 = text.split()
+                self.password = list1[-1]
+                self.password_state = False
+        
         self.tinput.text = ''
 
 class Pig(Button):
@@ -1600,10 +1732,36 @@ class Creeper(Button):
     def update(self):
         global enable_state
         global creeper_list
+        global creeper_forever
 
         # print(str(sky.texture))
+        if creeper_forever == False:
+            if str(sky.texture) == 'night_skybox.jpg':
+                list = self.intersects().entities
+                if self.intersects().entities == []:
+                    self.speed = 5
+                else:
+                    for i in range(len(list)):
+                        if list[i].position.y != self.position.y - 1:
+                            self.speed = 0
+                            self.position += self.right
+                self.lookAt(player)
+                self.rotation = Vec3(0, self.rotation_y + 90, 0)
 
-        if str(sky.texture) == 'night_skybox.jpg':
+
+                dir = player.position - self.position
+
+                if dir.length() > self.walk_limit:
+                    self.position += self.left * self.speed * time.dt
+
+                if dir.length() < self.walk_limit - 1:
+                    explote(self)
+                    creeper = Creeper(position=(random.randint(0, voxeles), 13, random.randint(0, voxeles)))
+                    creeper_list.append(creeper)
+                    # player.position = (3, 23, 3)
+                    YouDied(player.position)
+                    enable_state = False
+        else:
             list = self.intersects().entities
             if self.intersects().entities == []:
                 self.speed = 5
@@ -1654,17 +1812,17 @@ class Btn(Button):
             parent = scene,
             position = position,
             model = 'assets/block',
-            origin_y = -3.5,
+            origin_y = -2.5,
             texture = load_texture('assets/stone_block.png'),
             color = color.color(0, 0, random.uniform(0.9, 1)),
             scale = 0.1)
 
     state = False
+    color_state = True
 
     def input(self, key):
         if self.hovered:
             if key == 'left mouse down':
-                self.origin_y = -2.5
                 interes = self.intersects()
                 the_voxel = interes.entity
                 if the_voxel:
@@ -1849,17 +2007,85 @@ class Btn(Button):
                                 else:
                                     destroy(vox1)
                                     self.state = False
-
+                if self.color_state:
+                    self.origin_y = -2
+                    self.texture = load_texture('assets/button_block.png')
+                    self.color_state = False
                 else:
-                    self.origin_y = -3.5
+                    self.origin_y = -2.5
+                    self.texture = load_texture('assets/stone_block.png')
+                    self.color_state = True
+                # else:
+                #     self.origin_y = -3.5
 
             if key == 'right mouse down':
                 destroy(self)
-        
+
+class Chiken(Button):
+    def __init__(self, position = (0, 0, 0)):
+        super().__init__(
+            parent = scene,
+            position = position,
+            model = 'assets/block',
+            origin_y = 0.5,
+            texture = load_texture('assets/chiken_block.png'),
+            color = color.color(0, 0, random.uniform(0.9, 1)),
+            scale = 0.5,
+            rotation = Vec3(0, 180, 0),
+        )
+
+    speed = 2
+    walk_limit = 5
+    egg_state = True
+    state = False
+
+    def update(self):
+        self.lookAt(player)
+        self.rotation = Vec3(0, self.rotation_y + 90, 0)
+        dir = player.position - self.position
+
+        if dir.length() < self.walk_limit:
+            self.position += self.right * self.speed * time.dt
+            if self.egg_state:
+                self.egg_state = False
+                egg = Egg(position=self.position)
+        if dir.length() > (self.walk_limit * 2) - 1:
+            self.position += (self.left * self.speed * time.dt)
+            self.egg_state = True
+
+        print(self.state)
+        if self.state == True:
+            self.position += self.right
+            self.speed = 0
+        else:
+            self.speed = 2
+
+class Egg(Button):
+    def __init__(self, position = (0, 0, 0)):
+        super().__init__(
+            parent = scene,
+            position = position,
+            model = 'assets/Egg',
+            texture = load_texture('assets/egg_block.png'),
+            origin_y = 0.2,
+            scale = 0.001,
+            rotation = Vec3(0, 180, 0),
+            color = color.color(0, 0, random.uniform(0.9, 1)),
+        )
+
+    def input(self, key):
+        if key=='right mouse down':
+            if self.hovered:
+                destroy(self)
+        if key=='left mouse down':
+            if self.hovered:
+                chiken = Chiken(position=self.position)
+                destroy(self)
+
 
 if ground_not_normal == True:
-    for z in range(voxeles + 1):
-        for x in range(voxeles + 1):
+    for z in range(voxeles):
+        for x in range(voxeles):
             for y in range(13):
                 if y < stone_depth + 1:
                     voxel = Voxel(position = (x, y, z), texture=dirt_texture)
@@ -1881,8 +2107,8 @@ if ground_not_normal == True:
                     else:
                         voxel = Voxel(position = (x, y, z), texture=sand_texture)
 else:
-    for z in range(voxeles + 1):
-        for x in range(voxeles + 1):
+    for z in range(voxeles):
+        for x in range(voxeles):
             for y in range(13):
                 if y < 12:
                     voxel = Voxel(position = (x, y, z), texture=dirt_texture)
